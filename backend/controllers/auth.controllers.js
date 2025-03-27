@@ -44,7 +44,7 @@ export const signup = async (req, res) => {
 		let profilePic = "";
 		if (req.file) {
 			// If the user uploaded a profile picture, set its URL
-		   profilePic = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+			profilePic = `https://${req.get("host")}/uploads/${req.file.filename}`;
 		   console.log(`Uploaded file accessible at: ${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`);
 
 		} else {
