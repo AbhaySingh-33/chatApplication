@@ -1,74 +1,123 @@
-import { create } from "zustand";
+import { useEffect } from "react";
+import { useSocketContext } from "../context/SocketContext";
+import useConversation from "../zustand/useConversation";
+import notificationSound from "../assets/sounds/notification.mp3";
 
-const useConversation = create((set) => ({
-    messages: [],
-    selectedConversation: null, // ✅ Set default as an empty object instead of `null`
-    unreadMessages: {},
-    showDelete: null,
+const useListenMessages = () => {
+    const { socket } = useSocketContext();
+    const { messages, setMessages, selectedConversation, incrementUnreadMessages,
+            setTypingStatus,updateMessageStatus,updateAllMessageStatuses,updateMessageReactions } = useConversation();
 
-    setShowDelete: (messageId) => set({ showDelete: messageId }),
+            useEffect(() => {
+                socket?.on("newMessage", (newMessage, filteredUser) => {
+                    newMessage.shouldShake = true;
+                    const sound = new Audio(notificationSound);
+                    sound.play();
+        
+                    if (selectedConversation._id === filteredUser._id) {
+                        setMessages([...messages, newMessage]);
+                         // 📩 Send messageSeen event when a message is received
+                    socket.emit("messageSeen", { messageId: newMessage._id, senderId: newMessage.senderId });
+                    } else {
+                        incrementUnreadMessages(filteredUser._id);
+                         // 📩 Send messageDelivered event when a message is received
+                    socket.emit("messageDelivered", { messageId: newMessage._id, senderId: newMessage.senderId });
+        
+                    }
+                });
+        
+                return () => {
+                    socket?.off("newMessage");
+                };
+            }, [socket, setMessages, messages, selectedConversation, incrementUnreadMessages]);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("userTyping", (userId) => {
+            console.log(`✍️ ${userId} is typing...`);
+            setTypingStatus(userId, true);
+           
+        });
+
+        socket.on("userStopTyping", (userId) => {
+            console.log(`❌ ${userId} stopped typing.`);
+            setTypingStatus(userId, false);
+        });
+
+        return () => {
+            socket.off("userTyping");
+            socket.off("userStopTyping");
+        };
+    }, [socket, setTypingStatus]);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        // ✅ Listen for message status updates (Sent, Delivered, Seen)
+        socket.on("messageStatusUpdated", ({ messageId, status }) => {
+            updateMessageStatus(messageId, status);
+        });
+
+        return () => {
+            socket.off("messageStatusUpdated");
+        };
+    }, [socket, updateMessageStatus]);
+
+
+    useEffect(() => {
+        if (!socket) return;
     
-    setMessages: (messages) => set({ messages }),
+        socket.on("allmessageStatusUpdated", ({ receiverId, status }) => {
+            // ✅ Update all messages in the selected conversation
+            if (selectedConversation._id === receiverId) {
+                updateAllMessageStatuses(status);
+            }
+        });
+    
+        return () => {
+            socket.off("allmessageStatusUpdated");
+        };
+    }, [socket, selectedConversation, updateAllMessageStatuses]);
 
-    updateMessageStatus: (messageId, status) =>
-        set((state) => ({
-            messages: state.messages.map((msg) =>
-                msg._id === messageId ? { ...msg, status } : msg
-            ),
-        })),
+    useEffect(() => {
+        if (!socket) return;
+    
+        socket.on("reactionUpdated", ({ messageId, reactions }) => {
+            updateMessageReactions(messageId, reactions);
+        });
+    
+        return () => socket.off("reactionUpdated");
+    }, [socket]);
+    
+    useEffect(() => {
+        socket?.on("messageDeleted", (updatedMessages,filteredUser,RfilteredUser) => {
+            if (selectedConversation._id === filteredUser._id || selectedConversation._id === RfilteredUser._id) {
+                setMessages(updatedMessages);
+            }
+        });
+    
+        return () => {
+            socket?.off("messageDeleted");
+        };
+    }, [socket, setMessages, selectedConversation]);
 
-        updateAllMessageStatuses:(status)=>
-            set((state) => ({
-                messages: state.messages.map((msg) => ({
-                    ...msg,
-                    status,
-                }),
-                ),
-            })),
+    useEffect(() => {
+        // Listen to the "Message" event
+        socket.on("Message", (senderId) => {
+          console.log(`Message received from: ${senderId}`);
+          setMessages(null); // Set message to null
+        });
+    
+        // Cleanup listener on component unmount
+        return () => {
+          socket.off("Message");
+        };
+      }, [socket]);
+    
 
-    setSelectedConversation: (conversation) => 
-        set({ selectedConversation: conversation || null }), // ✅ Ensure it never becomes `null`
+ 
+    return null;
+};
 
-    incrementUnreadMessages: (conversationId) => 
-        set((state) => ({
-            unreadMessages: {
-                ...state.unreadMessages,
-                [conversationId]: (state.unreadMessages[conversationId] || 0) + 1,
-            },
-        })),
-
-    resetUnreadMessages: (conversationId) =>
-        set((state) => ({
-            unreadMessages: {
-                ...state.unreadMessages,
-                [conversationId]: 0,
-            },
-        })),
-
-        typingUsers: {}, // ✅ Store typing users
-        setTypingStatus: (userId, isTyping) =>
-            set((state) => ({
-                typingUsers: {
-                    ...state.typingUsers,
-                    [userId]: isTyping,
-                },
-            })),
-
-            // ✅ Update replies
-    addReplyToMessage: (messageId, replyMessage) =>
-        set((state) => ({
-            messages: state.messages.map((msg) =>
-                msg._id === messageId ? { ...msg, reply: replyMessage } : msg
-            ),
-        })),
-
-    // ✅ Update reactions
-    updateMessageReactions: (messageId, reactions) =>
-        set((state) => ({
-            messages: state.messages.map((msg) =>
-                msg._id === messageId ? { ...msg, reactions } : msg
-            ),
-        })),
-}));
-
-export default useConversation;
+export default useListenMessages;

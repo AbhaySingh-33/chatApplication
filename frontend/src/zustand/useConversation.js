@@ -52,6 +52,23 @@ const useConversation = create((set) => ({
                     [userId]: isTyping,
                 },
             })),
+
+            
+            // ✅ Update replies
+    addReplyToMessage: (messageId, replyMessage) =>
+        set((state) => ({
+            messages: state.messages.map((msg) =>
+                msg._id === messageId ? { ...msg, reply: replyMessage } : msg
+            ),
+        })),
+
+    // ✅ Update reactions
+    updateMessageReactions: (messageId, reactions) =>
+        set((state) => ({
+            messages: state.messages.map((msg) =>
+                msg._id === messageId ? { ...msg, reactions } : msg
+            ),
+        })),
 }));
 
 export default useConversation;
