@@ -2,11 +2,10 @@ import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import User from "../models/user.model.js";
-import { Socket } from "socket.io";
 
 export const sendMessage = async (req, res) => {
     try {
-        const { text, media } = req.body;
+        const { text, media, replyTo } = req.body;
         const { id: receiverId } = req.params;
         const senderId = req.user._id;
 
@@ -31,7 +30,8 @@ export const sendMessage = async (req, res) => {
             receiverId,
             message: text || "",
             media: media || null,
-            status: "sent",
+            status: "sent", // ✅ Initially, set status as "sent"
+            replyTo: replyTo ? { messageId: replyTo.messageId, text: replyTo.message } : null, // ✅ Store replied message
         });
 
         conversation.messages.push(newMessage._id);
@@ -40,9 +40,10 @@ export const sendMessage = async (req, res) => {
 
         // Send real-time message with Socket.IO
         const receiverSocketId = getReceiverSocketId(receiverId);
+        const senderSocketId = getReceiverSocketId(senderId);
         if (receiverSocketId) {
             io.to(receiverSocketId).emit("newMessage", newMessage, filteredUser);
-            io.to(receiverSocketId).emit("messageStatusUpdated", { messageId: newMessage._id, status: "delivered" });
+            io.to(senderSocketId).emit("messageStatusUpdated", { messageId: newMessage._id, status: "delivered" });
         }
 
         res.status(201).json(newMessage);
@@ -62,7 +63,7 @@ export const getMessages = async (req, res) => {
             participants: { $all: [senderId, userToChatId] },
         }).populate({
             path: "messages",
-            select: "senderId receiverId message media status createdAt", // ✅ Added "status"
+            select: "senderId receiverId message media status reactions replyTo createdAt", // ✅ Added "reactions"
             options: { sort: { createdAt: 1 } }, // ✅ Sort messages oldest to newest
         }).lean(); // ✅ Faster performance
 
@@ -71,22 +72,59 @@ export const getMessages = async (req, res) => {
             if (senderSocketId) {
                 io.to(senderSocketId).emit("Message",senderId);
             }
-            return res.status(404).json({ error: "No Conversation yet" });
+            return res.status(404).json({ error: "No Conversation yet!" });
         }
 
-        // ✅ Format messages properly
+        // ✅ Format messages properly to include text, media, and reactions
         const formattedMessages = conversation.messages.map((msg) => ({
             _id: msg._id,
             senderId: msg.senderId,
             receiverId: msg.receiverId,
-            message: msg.message || null, // Ensures message is not null
+            message: msg.message || null, // Ensures message can be null
             media: msg.media || null, // Media (image/video) URL
-            status: msg.status, // ✅ Now included
+            status: msg.status, // ✅ Include status
+            reactions: msg.reactions || [], // ✅ Include reactions
+            replyTo: msg.replyTo || null, // ✅ Include reply message details
             createdAt: msg.createdAt,
         }));
+
         res.status(200).json(formattedMessages);
     } catch (error) {
-        console.error("Error in getMessages controller:", error.message);
+        console.log("Error in getMessages controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+
+export const reactToMessage = async (req, res) => {
+    try {
+        const { messageId, emoji } = req.body;
+        const userId = req.user._id;
+
+        // ✅ Check if the user already reacted
+        const message = await Message.findById(messageId);
+        const existingReaction = message.reactions.find(r => r.userId.toString() === userId.toString());
+
+        if (existingReaction) {
+            // ✅ Update existing reaction if different, else remove it
+            if (existingReaction.emoji === emoji) {
+                message.reactions = message.reactions.filter(r => r.userId.toString() !== userId.toString());
+            } else {
+                existingReaction.emoji = emoji;
+            }
+        } else {
+            // ✅ Add new reaction
+            message.reactions.push({ userId, emoji });
+        }
+
+        await message.save();
+
+        // ✅ Emit real-time update
+        io.emit("reactionUpdated", { messageId, reactions: message.reactions });
+
+        res.status(200).json(message);
+    } catch (error) {
+        console.error("Error reacting to message:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };

@@ -1,116 +1,74 @@
-import { useEffect } from "react";
-import { useSocketContext } from "../context/SocketContext";
-import useConversation from "../zustand/useConversation";
-import notificationSound from "../assets/sounds/notification.mp3";
+import { create } from "zustand";
 
-const useListenMessages = () => {
-    const { socket } = useSocketContext();
-    const { messages, setMessages, selectedConversation, incrementUnreadMessages,
-            setTypingStatus,updateMessageStatus,updateAllMessageStatuses } = useConversation();
+const useConversation = create((set) => ({
+    messages: [],
+    selectedConversation: null, // ✅ Set default as an empty object instead of `null`
+    unreadMessages: {},
+    showDelete: null,
 
-    useEffect(() => {
-        socket?.on("newMessage", (newMessage, filteredUser) => {
-            newMessage.shouldShake = true;
-            const sound = new Audio(notificationSound);
-            sound.play();
-
-            console.log("📩 New message received: ", newMessage);
-
-            if (selectedConversation._id === filteredUser._id) {
-                setMessages([...messages, newMessage]);
-                 // 📩 Send messageSeen event when a message is received
-            socket.emit("messageSeen", { messageId: newMessage._id, senderId: newMessage.senderId });
-            } else {
-                incrementUnreadMessages(filteredUser._id);
-                 // 📩 Send messageDelivered event when a message is received
-            socket.emit("messageDelivered", { messageId: newMessage._id, senderId: newMessage.senderId });
-
-            }
-        });
-
-        return () => {
-            socket?.off("newMessage");
-        };
-    }, [socket, setMessages, messages, selectedConversation, incrementUnreadMessages]);
-
-    useEffect(() => {
-        socket?.on("messageDeleted", (updatedMessages,filteredUser,RfilteredUser) => {
-            if (selectedConversation._id === filteredUser._id || selectedConversation._id === RfilteredUser._id) {
-                setMessages(updatedMessages);
-            }
-        });
+    setShowDelete: (messageId) => set({ showDelete: messageId }),
     
-        return () => {
-            socket?.off("messageDeleted");
-        };
-    }, [socket, setMessages, selectedConversation]);
+    setMessages: (messages) => set({ messages }),
 
+    updateMessageStatus: (messageId, status) =>
+        set((state) => ({
+            messages: state.messages.map((msg) =>
+                msg._id === messageId ? { ...msg, status } : msg
+            ),
+        })),
 
-    useEffect(() => {
-        if (!socket) return;
+        updateAllMessageStatuses:(status)=>
+            set((state) => ({
+                messages: state.messages.map((msg) => ({
+                    ...msg,
+                    status,
+                }),
+                ),
+            })),
 
-        socket.on("userTyping", (userId) => {
-            console.log(`✍️ ${userId} is typing...`);
-            setTypingStatus(userId, true);
-           
-        });
+    setSelectedConversation: (conversation) => 
+        set({ selectedConversation: conversation || null }), // ✅ Ensure it never becomes `null`
 
-        socket.on("userStopTyping", (userId) => {
-            console.log(`❌ ${userId} stopped typing.`);
-            setTypingStatus(userId, false);
-        });
+    incrementUnreadMessages: (conversationId) => 
+        set((state) => ({
+            unreadMessages: {
+                ...state.unreadMessages,
+                [conversationId]: (state.unreadMessages[conversationId] || 0) + 1,
+            },
+        })),
 
-        return () => {
-            socket.off("userTyping");
-            socket.off("userStopTyping");
-        };
-    }, [socket, setTypingStatus]);
+    resetUnreadMessages: (conversationId) =>
+        set((state) => ({
+            unreadMessages: {
+                ...state.unreadMessages,
+                [conversationId]: 0,
+            },
+        })),
 
-    useEffect(() => {
-        if (!socket) return;
+        typingUsers: {}, // ✅ Store typing users
+        setTypingStatus: (userId, isTyping) =>
+            set((state) => ({
+                typingUsers: {
+                    ...state.typingUsers,
+                    [userId]: isTyping,
+                },
+            })),
 
-        // ✅ Listen for message status updates (Sent, Delivered, Seen)
-        socket.on("messageStatusUpdated", ({ messageId, status }) => {
-            updateMessageStatus(messageId, status);
-        });
+            // ✅ Update replies
+    addReplyToMessage: (messageId, replyMessage) =>
+        set((state) => ({
+            messages: state.messages.map((msg) =>
+                msg._id === messageId ? { ...msg, reply: replyMessage } : msg
+            ),
+        })),
 
-        return () => {
-            socket.off("messageStatusUpdated");
-        };
-    }, [socket, updateMessageStatus]);
+    // ✅ Update reactions
+    updateMessageReactions: (messageId, reactions) =>
+        set((state) => ({
+            messages: state.messages.map((msg) =>
+                msg._id === messageId ? { ...msg, reactions } : msg
+            ),
+        })),
+}));
 
-
-    useEffect(() => {
-        if (!socket) return;
-    
-        socket.on("allmessageStatusUpdated", ({ senderId, status,receiverId }) => {
-            // ✅ Update all messages in the selected conversation
-            if (selectedConversation._id === receiverId) {
-                updateAllMessageStatuses(status);
-            }
-        });
-    
-        return () => {
-            socket.off("allmessageStatusUpdated");
-        };
-    }, [socket, selectedConversation, updateAllMessageStatuses]);
-
-    
-  useEffect(() => {
-    // Listen to the "Message" event
-    socket.on("Message", (senderId) => {
-      console.log(`Message received from: ${senderId}`);
-      setMessages(null); // Set message to null
-    });
-
-    // Cleanup listener on component unmount
-    return () => {
-      socket.off("Message");
-    };
-  }, [socket]);
-
-    
-    return null;
-};
-
-export default useListenMessages;
+export default useConversation;

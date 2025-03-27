@@ -25,6 +25,20 @@ const messageSchema = new mongoose.Schema(
             enum: ["sent", "delivered", "seen"],
             default: "sent"
         },
+
+        replyTo: {
+            messageId: { type: mongoose.Schema.Types.ObjectId, ref: "Message" }, // ✅ Store replied message ID
+            text: { type: String }, // ✅ Store replied message text
+        },
+
+         // ✅ Reaction Feature
+    reactions: [
+        {
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+            emoji: { type: String } // Example: "❤️", "👍", "😂"
+        }
+    ]
+        
     },
     { timestamps: true }
 );

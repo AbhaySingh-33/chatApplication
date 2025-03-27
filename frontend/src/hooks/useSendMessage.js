@@ -36,7 +36,7 @@ const useSendMessage = () => {
     const [loading, setLoading] = useState(false);
     const { messages, setMessages, selectedConversation } = useConversation();
 
-    const sendMessage = async ({ text, file }) => {
+    const sendMessage = async ({ text, file, replyTo }) => {
         setLoading(true);
         try {
             let mediaUrl = null;
@@ -49,7 +49,7 @@ const useSendMessage = () => {
             const res = await fetch(`/api/messages/send/${selectedConversation._id}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text, media: mediaUrl }),
+                body: JSON.stringify({ text, media: mediaUrl,  replyTo: replyTo || null }),
             });
 
             const data = await res.json();
@@ -63,7 +63,7 @@ const useSendMessage = () => {
         }
     };
 
-	const deleteMessage = async (messageId) => {
+    const deleteMessage = async (messageId) => {
         try {
             const res = await fetch(`/api/messages/${messageId}`, {
                 method: "DELETE",
@@ -81,7 +81,7 @@ const useSendMessage = () => {
         }
     };
 
-	return { sendMessage, loading,deleteMessage };
-
+    return { sendMessage, loading,deleteMessage };
 };
+
 export default useSendMessage;
