@@ -5,8 +5,8 @@ import toast from "react-hot-toast";
 const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "chat_uploads"); // ✅ Replace with your actual preset
-    formData.append("api_key", "738338166335775"); // ✅ Replace with your Cloudinary API Key
+    formData.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET); // ✅ Replace with your actual preset
+    formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY); // ✅ Replace with your Cloudinary API Key
 
     // Determine folder & resource type
     const fileType = file.type.startsWith("image") ? "image" : "video";
@@ -16,7 +16,7 @@ const uploadToCloudinary = async (file) => {
 
     try {
         const response = await fetch(
-            `https://api.cloudinary.com/v1_1/dkdpddzac/${fileType}/upload`,
+            `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_NAME}/${fileType}/upload`,
             { method: "POST", body: formData }
         );
 
@@ -49,7 +49,7 @@ const useSendMessage = () => {
             const res = await fetch(`/api/messages/send/${selectedConversation._id}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text, media: mediaUrl,  replyTo: replyTo || null }),
+                body: JSON.stringify({ text, media: mediaUrl, replyTo: replyTo || null }),
             });
 
             const data = await res.json();
@@ -81,7 +81,7 @@ const useSendMessage = () => {
         }
     };
 
-    return { sendMessage, loading,deleteMessage };
+    return { sendMessage, loading, deleteMessage };
 };
 
 export default useSendMessage;

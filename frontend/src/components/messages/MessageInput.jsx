@@ -44,15 +44,42 @@ const MessageInput = () => {
         }
     };
 
-	const handleKeyDown = () => {
-        socket.emit("typing", { senderId: socket.id, receiverId: selectedConversation._id });
-    };
-    
-    const handleKeyUp = () => {
-        setTimeout(() => {
-            socket.emit("stopTyping", { senderId: socket.id, receiverId: selectedConversation._id });
-        }, 2000); // Stop typing indicator after 2s of no key press
-    };
+	// Declare a timeout reference outside the functions
+let typingTimeout = null;
+
+const handleKeyDown = () => {
+    // Emit the "typing" event when the user starts typing
+    socket.emit("typing", { 
+        senderId: socket.id, 
+        receiverId: selectedConversation._id 
+    });
+
+    // Clear any existing typing timeout (to avoid prematurely stopping the typing indicator)
+    if (typingTimeout) {
+        clearTimeout(typingTimeout);
+        typingTimeout = null;
+    }
+};
+
+const handleKeyUp = () => {
+    // Clear any previously set timeout to prevent overlaps
+    if (typingTimeout) {
+        clearTimeout(typingTimeout);
+    }
+
+    // Set a new timeout for 2 seconds
+    typingTimeout = setTimeout(() => {
+        // Emit "stopTyping" after 2 seconds of no key press
+        socket.emit("stopTyping", { 
+            senderId: socket.id, 
+            receiverId: selectedConversation._id 
+        });
+
+        // Clear the timeout after emitting to avoid memory leaks
+        typingTimeout = null;
+    }, 2000);
+};
+
 
 	return (
 		<div className="relative">

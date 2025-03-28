@@ -35,13 +35,11 @@ const useListenMessages = () => {
         if (!socket) return;
 
         socket.on("userTyping", (userId) => {
-            console.log(`✍️ ${userId} is typing...`);
             setTypingStatus(userId, true);
            
         });
 
         socket.on("userStopTyping", (userId) => {
-            console.log(`❌ ${userId} stopped typing.`);
             setTypingStatus(userId, false);
         });
 

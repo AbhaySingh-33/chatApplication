@@ -15,7 +15,10 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename); // For resolving directory paths
 
+
 dotenv.config();
+console.log("Cloudinary Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
+
 
 const PORT = process.env.PORT || 5000;
 
@@ -35,8 +38,6 @@ app.use("/api/auth", authRoutes); // Authentication routes
 app.use("/api/messages", messageRoutes); // Messaging routes
 app.use("/api/users", userRoutes); // User-related routes
 
-// Serve uploaded files statically
-app.use("/uploads", express.static(path.join(__dirname, "./controllers/uploads")));
 
 // Serve frontend static files (for deployment)
 app.use(express.static(path.join(__dirname, "../frontend/dist")));

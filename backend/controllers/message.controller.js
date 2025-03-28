@@ -73,7 +73,7 @@ export const getMessages = async (req, res) => {
                 io.to(senderSocketId).emit("Message",senderId);
             }
             return res.status(404).json({ error: "No Conversation yet!" });
-        }
+        } 
 
         // ✅ Format messages properly to include text, media, and reactions
         const formattedMessages = conversation.messages.map((msg) => ({
