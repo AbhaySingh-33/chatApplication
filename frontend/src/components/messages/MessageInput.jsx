@@ -97,11 +97,13 @@ const handleKeyUp = () => {
                     {/* Text Input */}
                     <input
                         type="text"
-                        className="border text-sm rounded-lg block w-full p-2.5 pl-10 bg-gray-700 border-gray-600 text-white"
+                        className="border text-sm rounded-lg block w-full p-2.5 pl-10 pr-20 bg-gray-700 border-gray-600 text-white"
                         placeholder="Type a message..."
                         value={message}
                         onKeyDown={handleKeyDown} // Start typing
                         onKeyUp={handleKeyUp}
+                        onClick={() => showEmojiPicker && setShowEmojiPicker(false)}
+
                         onChange={(e) => {
                             setMessage(e.target.value);
                             if (socket && selectedConversation) {
@@ -130,11 +132,13 @@ const handleKeyUp = () => {
                         id="file-upload"
                         className="hidden"
                         onChange={handleFileChange}
+                        onClick={() => showEmojiPicker && setShowEmojiPicker(false)}
                         accept="image/*, video/*"
                     />
 
                     {/* Send Button */}
-                    <button type="submit" className="absolute inset-y-0 right-3 flex items-center">
+                    <button type="submit" className="absolute inset-y-0 right-3 flex items-center"
+                    onClick={() => showEmojiPicker && setShowEmojiPicker(false)}>
                         {loading ? <div className="loading loading-spinner"></div> : <BsSend />}
                     </button>
                 </div>
