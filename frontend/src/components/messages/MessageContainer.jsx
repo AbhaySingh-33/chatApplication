@@ -17,45 +17,47 @@ const MessageContainer = () => {
 	const isEmptyObject = (obj) => !Object.keys(obj).length;
 
 	return (
-		<div className='md:min-w-[450px] flex flex-col' onClick={() => setShowDelete(null)}>
-			{isEmptyObject(selectedConversation) ? (
-				<NoChatSelected />
-			) : (
-				<>
-					{/* Header with Close Button */}
-					<div className='bg-slate-500 px-4 py-2 mb-2 flex justify-between items-center relative'>
-						<div>
-							<span className='label-text'>To:</span>{" "}
-							<span className='text-gray-900 font-bold'>{selectedConversation.fullName}</span>
-						</div>
-
-						{/* Close (X) Button */}
-						<button
-							onClick={() => setSelectedConversation({})} // Reset conversation
-							className='text-white hover:text-red-500 text-xl font-bold'
-						>
-							&times;
-						</button>
-					</div>
-
-					{/* Typing Indicator */}
-                    {typingUsers[selectedConversation?._id] && (
-    				<p className="text-sm text-gray-400 pl-4">✍️ Typing...</p>
-					)}
-
-					{/* Chat Messages */}
-                    <div className="flex-1 overflow-y-auto">
-                        <Messages />
-                    </div>
-
-                    {/* Message Input */}
-                    <div>
-                        <MessageInput />
-                    </div>
-				</>
-			)}
+		<div
+		  className="flex flex-col h-[100dvh] sm:h-auto w-full sm:min-w-[450px] backdrop-filter backdrop-blur-lg"
+		  onClick={() => setShowDelete(null)}
+		>
+		  {isEmptyObject(selectedConversation) ? (
+			<NoChatSelected />
+		  ) : (
+			<>
+			  {/* Header */}
+			  <div className="bg-slate-500 px-4 py-2 flex justify-between items-center">
+				<div>
+				  <span className="label-text">To:</span>{" "}
+				  <span className="text-gray-900 font-bold">{selectedConversation.fullName}</span>
+				</div>
+				<button
+				  onClick={() => setSelectedConversation({})}
+				  className="text-white hover:text-red-500 text-xl font-bold"
+				>
+				  &times;
+				</button>
+			  </div>
+	  
+			  {/* Typing Indicator */}
+			  {typingUsers[selectedConversation?._id] && (
+				<p className="text-sm text-gray-400 px-4 py-1">✍️ Typing...</p>
+			  )}
+	  
+			  {/* Messages */}
+			  <div className="flex-1 overflow-y-auto px-2 py-1">
+				<Messages />
+			  </div>
+	  
+			  {/* Message Input */}
+			  <div className="p-2 border-t border-gray-600">
+				<MessageInput />
+			  </div>
+			</>
+		  )}
 		</div>
-	);
+	  );
+	  
 };
 
 export default MessageContainer;
