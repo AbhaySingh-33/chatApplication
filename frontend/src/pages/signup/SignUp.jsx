@@ -10,7 +10,7 @@ const SignUp = () => {
 		password: "",
 		confirmPassword: "",
 		gender: "",
-		profilePic: null, // Added for profile picture
+		profilePic: null,
 	});
 
 	const { loading, signup } = useSignup();
@@ -26,108 +26,106 @@ const SignUp = () => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-
-		console.log("Form submitted:", inputs);
-	
-		// Pass the form inputs and the profilePic file
 		await signup({
 			fullName: inputs.fullName,
 			username: inputs.username,
 			password: inputs.password,
 			confirmPassword: inputs.confirmPassword,
 			gender: inputs.gender,
-			profilePic: inputs.profilePic, // Profile picture file
+			profilePic: inputs.profilePic,
 		});
 	};
-	
 
 	return (
-		<div className="flex flex-col items-center justify-center  min-w-96 mx-auto">
-			<div className="w-full p-6 rounded-lg shadow-md bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0">
-				<h1 className="text-3xl font-semibold text-center text-gray-300">
-					Sign Up <span className="text-blue-500"> ChatApp</span>
+		<div className="flex justify-center items-center px-4">
+			<div className="w-full max-w-sm p-6 rounded-lg shadow-md bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-10 bg-gradient-to-br from-slate-900/30 to-slate-700/20">
+				<h1 className="text-3xl font-semibold text-center text-blue-500 mb-4">
+					Sign Up 
 				</h1>
 
 				<form onSubmit={handleSubmit}>
-					<div>
-						<label className="label p-2">
-							<span className="text-base label-text">Full Name</span>
+					<div className="mb-3">
+						<label className="label">
+							<span className="text-base text-white">Full Name</span>
 						</label>
 						<input
 							type="text"
 							placeholder="Enter Name"
-							className="w-full input input-bordered h-10"
+							className="w-full input input-bordered h-10 bg-gray-800 text-white"
 							value={inputs.fullName}
 							onChange={(e) => setInputs({ ...inputs, fullName: e.target.value })}
 						/>
 					</div>
 
-					<div>
-						<label className="label p-2 ">
-							<span className="text-base label-text">Username</span>
+					<div className="mb-3">
+						<label className="label">
+							<span className="text-base text-white">Username</span>
 						</label>
 						<input
 							type="text"
 							placeholder="Enter Username"
-							className="w-full input input-bordered h-10"
+							className="w-full input input-bordered h-10 bg-gray-800 text-white"
 							value={inputs.username}
 							onChange={(e) => setInputs({ ...inputs, username: e.target.value })}
 						/>
 					</div>
 
-					<div>
+					<div className="mb-3">
 						<label className="label">
-							<span className="text-base label-text">Password</span>
+							<span className="text-base text-white">Password</span>
 						</label>
 						<input
 							type="password"
 							placeholder="Enter Password"
-							className="w-full input input-bordered h-10"
+							className="w-full input input-bordered h-10 bg-gray-800 text-white"
 							value={inputs.password}
 							onChange={(e) => setInputs({ ...inputs, password: e.target.value })}
 						/>
 					</div>
 
-					<div className="mt-2">
+					<div className="mb-3">
 						<label className="label">
-							<span className="text-base label-text">Confirm Password</span>
+							<span className="text-base text-white">Confirm Password</span>
 						</label>
 						<input
 							type="password"
 							placeholder="Confirm Password"
-							className="w-full input input-bordered h-10"
+							className="w-full input input-bordered h-10 bg-gray-800 text-white"
 							value={inputs.confirmPassword}
 							onChange={(e) => setInputs({ ...inputs, confirmPassword: e.target.value })}
 						/>
 					</div>
 
-					<GenderCheckbox onCheckboxChange={handleCheckboxChange} selectedGender={inputs.gender} />
+					<GenderCheckbox
+						onCheckboxChange={handleCheckboxChange}
+						selectedGender={inputs.gender}
+					/>
 
 					<div className="mt-4">
 						<label className="label">
-							<span className="text-base label-text">Profile Picture (optional)</span>
+							<span className="text-base text-white">Profile Picture (optional)</span>
 						</label>
 						<input
 							type="file"
 							accept="image/*"
-							className="w-full input input-bordered h-10"
+							className="w-full input input-bordered h-10 bg-gray-800 text-white"
 							onChange={handleFileChange}
 						/>
 					</div>
 
 					<Link
 						to={"/login"}
-						className="text-sm hover:underline hover:text-blue-600 mt-2 inline-block"
-						href="#"
+						className="text-sm hover:underline text-blue-400 mt-3 inline-block"
 					>
 						Already have an account?
 					</Link>
 
-					<div>
-						<button className="btn btn-block btn-sm mt-2 border border-slate-700" disabled={loading}>
-							{loading ? <span className="loading loading-spinner"></span> : "Sign Up"}
-						</button>
-					</div>
+					<button
+						className="btn btn-block btn-sm mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+						disabled={loading}
+					>
+						{loading ? <span className="loading loading-spinner"></span> : "Sign Up"}
+					</button>
 				</form>
 			</div>
 		</div>

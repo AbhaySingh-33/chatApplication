@@ -72,17 +72,17 @@ const Message = ({ message }) => {
 	};
 
     return (
-        <div className={`chat ${chatClassName}`} onContextMenu={handleContextMenu}>
+        <div className={`chat ${chatClassName}`} onContextMenu={handleContextMenu} >
             <div className="chat-image avatar">
                 <div className="w-10 rounded-full">
                     <img alt="User avatar" src={profilePic} />
                 </div>
             </div>
 
-            <div className="relative flex flex-col">
+            <div className="relative flex flex-col mt-6">
                 {/* ✅ Display Reply if exists */}
                 {message.replyTo && (
-                    <div className="reply-box bg-blue-950 p-2 rounded-md text-gray-200">
+                    <div className="reply-box bg-blue-950 p-2  rounded-md text-gray-200">
                         <p className="text-xs ">Replying to:  {message.replyTo.text}</p>
                     </div>
                 )}

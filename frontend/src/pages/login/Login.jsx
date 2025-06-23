@@ -14,51 +14,61 @@ const Login = () => {
 	};
 
 	return (
-		<div className='flex flex-col items-center justify-center min-w-96 mx-auto'>
-			<div className='w-full p-6 rounded-lg shadow-md  bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0'>
-				<h1 className='text-3xl font-semibold text-center text-gray-300'>
-					Login
-					<span className='text-blue-500'> ChatApp</span>
+		<div className="flex justify-center items-center mt-8 px-4">
+			<div className="w-full max-w-sm p-6 rounded-lg shadow-md bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-10 bg-gradient-to-br from-slate-900/30 to-slate-700/20">
+				<h1 className="text-3xl font-semibold text-center text-blue-500 mb-6">
+					Login 
 				</h1>
 
 				<form onSubmit={handleSubmit}>
-					<div>
-						<label className='label p-2'>
-							<span className='text-base label-text'>Username</span>
+					<div className="mb-4">
+						<label className="label">
+							<span className="text-base text-white">Username</span>
 						</label>
 						<input
-							type='text'
-							placeholder='Enter username'
-							className='w-full input input-bordered h-10'
+							type="text"
+							placeholder="Enter username"
+							className="w-full input input-bordered h-10 bg-gray-800 text-white"
 							value={username}
 							onChange={(e) => setUsername(e.target.value)}
 						/>
 					</div>
 
-					<div>
-						<label className='label'>
-							<span className='text-base label-text'>Password</span>
+					<div className="mb-4">
+						<label className="label">
+							<span className="text-base text-white">Password</span>
 						</label>
 						<input
-							type='password'
-							placeholder='Enter Password'
-							className='w-full input input-bordered h-10'
+							type="password"
+							placeholder="Enter Password"
+							className="w-full input input-bordered h-10 bg-gray-800 text-white"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
 						/>
 					</div>
-					<Link to='/signup' className='text-sm  hover:underline hover:text-blue-600 mt-2 inline-block'>
-						{"Don't"} have an account?
+
+					<Link
+						to="/signup"
+						className="text-sm text-blue-400 hover:underline mt-1 inline-block"
+					>
+						Don't have an account?
 					</Link>
 
-					<div>
-						<button className='btn btn-block btn-sm mt-2' disabled={loading}>
-							{loading ? <span className='loading loading-spinner '></span> : "Login"}
-						</button>
-					</div>
+					<button
+						type="submit"
+						className="btn btn-block btn-sm mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+						disabled={loading}
+					>
+						{loading ? (
+							<span className="loading loading-spinner" />
+						) : (
+							"Login"
+						)}
+					</button>
 				</form>
 			</div>
 		</div>
 	);
 };
+
 export default Login;

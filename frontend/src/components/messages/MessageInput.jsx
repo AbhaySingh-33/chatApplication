@@ -95,11 +95,12 @@ const handleKeyUp = () => {
                     </button>
 
                     {/* Text Input */}
-                    <input
+                    <textarea
                         type="text"
-                        className="border text-sm rounded-lg block w-full p-2.5 pl-10 pr-20 bg-gray-700 border-gray-600 text-white"
+                        className="border text-sm rounded-lg block w-full p-2.5 pl-10 pr-20 bg-gray-700 border-gray-600 text-white resize-none focus:outline-none"
                         placeholder="Type a message..."
                         value={message}
+                        rows={2}
                         onKeyDown={handleKeyDown} // Start typing
                         onKeyUp={handleKeyUp}
                         onClick={() => showEmojiPicker && setShowEmojiPicker(false)}
