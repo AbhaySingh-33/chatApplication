@@ -7,6 +7,7 @@ const SignUp = () => {
 	const [inputs, setInputs] = useState({
 		fullName: "",
 		username: "",
+		email: "",
 		password: "",
 		confirmPassword: "",
 		gender: "",
@@ -31,6 +32,7 @@ const SignUp = () => {
 			username: inputs.username,
 			password: inputs.password,
 			confirmPassword: inputs.confirmPassword,
+			email: inputs.email,
 			gender: inputs.gender,
 			profilePic: inputs.profilePic,
 		});
@@ -95,6 +97,20 @@ const SignUp = () => {
 							onChange={(e) => setInputs({ ...inputs, confirmPassword: e.target.value })}
 						/>
 					</div>
+
+					<div className="mb-3">
+						<label className="label">
+							<span className="text-base text-white">Email</span>
+						</label>
+						<input
+							type="email"
+							placeholder="Enter Email"
+							className="w-full input input-bordered h-10 bg-gray-800 text-white"
+							value={inputs.email}
+							onChange={(e) => setInputs({ ...inputs, email: e.target.value })}
+						/>
+					</div>
+
 
 					<GenderCheckbox
 						onCheckboxChange={handleCheckboxChange}

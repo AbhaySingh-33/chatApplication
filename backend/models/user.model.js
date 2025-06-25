@@ -26,6 +26,16 @@ const userSchema = new mongoose.Schema(
 			default: "",
 		},
 		// createdAt, updatedAt => Member since <createdAt>
+		email: {
+			type: String,
+			required: true,
+			unique: true,
+			match: /.+\@.+\..+/,
+		},
+		isVerified: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	{ timestamps: true }
 );

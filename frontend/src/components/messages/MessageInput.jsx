@@ -88,7 +88,7 @@ const handleKeyUp = () => {
                     {/* Emoji Button */}
                     <button
                         type="button"
-                        className="absolute inset-y-0 left-3 flex items-center"
+                        className="absolute inset-y-0 left-3 flex items-center "
                         onClick={() => setShowEmojiPicker((prev) => !prev)}
                     >
                         <BsEmojiSmile />

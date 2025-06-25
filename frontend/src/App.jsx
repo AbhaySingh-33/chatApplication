@@ -5,9 +5,15 @@ import Login from "./pages/login/Login";
 import SignUp from "./pages/signup/SignUp";
 import { Toaster } from "react-hot-toast";
 import { useAuthContext } from "./context/AuthContext";
+import VerifyEmail from "./pages/verifyEmail/VerifyEmail";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Verification from "./pages/verifyEmail/Verification";
 
 function App() {
+
 	const { authUser } = useAuthContext();
+
 	return (
 		<div className="relative min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-start p-4">
 
@@ -15,7 +21,7 @@ function App() {
 			<div className="absolute inset-0  bg-opacity-60 z-0"></div>
 
 			{/* Header */}
-			<div className="relative z-10 mt-8 mb-6 px-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
+			<div className="relative z-10 mt-16 mb-6  px-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
 				<img
 					src="/logo.png"
 					alt="Chat Application Logo"
@@ -31,7 +37,13 @@ function App() {
 				<Routes>
 					<Route path="/" element={authUser ? <Home /> : <Navigate to="/login" />} />
 					<Route path="/login" element={authUser ? <Navigate to="/" /> : <Login />} />
-					<Route path="/signup" element={authUser ? <Navigate to="/" /> : <SignUp />} />
+					<Route path="/signup" element={authUser ? (authUser.isVerified ? (<Navigate to="/" />) 
+					  : (<Verification />)) 
+					  : (<SignUp />)}/>
+
+					<Route path="*" element={<Navigate to={authUser ? "/" : "/login"} />} />
+
+					<Route path="/verify-email/:token" element={<VerifyEmail />} />
 				</Routes>
 			</div>
 
