@@ -13,9 +13,9 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
 cloudinary.config({
-	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-	api_key: process.env.CLOUDINARY_API_KEY,
-	api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Configure Multer-Cloudinary storage
@@ -31,7 +31,8 @@ const upload = multer({ storage });
 
 export const signup = async (req, res) => {
   try {
-    const { fullName, username, email, password, confirmPassword, gender } = req.body;
+    const { fullName, username, email, password, confirmPassword, gender } =
+      req.body;
 
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords don't match" });
@@ -41,6 +42,11 @@ export const signup = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ error: "Username already exists" });
     }
+
+    // const existingEmail = await User.findOne({ email });
+    // if (existingEmail) {
+    //   return res.status(400).json({ error: "Email already registered" });
+    // }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -66,7 +72,9 @@ export const signup = async (req, res) => {
 
     await newUser.save();
 
-    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
     const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${token}`;
 
     const transporter = nodemailer.createTransport({
@@ -83,16 +91,17 @@ export const signup = async (req, res) => {
       subject: "Welcome to ChatApp! Verify your email ✅",
       html: `<p>Hi ${fullName},</p>
        <p>Thanks for signing up! Click <a href="${verificationUrl}">here to verify</a> your email address.</p>
-       <p>This link expires in 24 hours.</p>`
-
+       <p>This link expires in 24 hours.</p>`,
     });
 
-    console.log("email sent")
-    console.log("verification URL:", verificationUrl)
-    console.log("email to:", email)
-    console.log("email info:", info)
+    console.log("email sent");
+    console.log("verification URL:", verificationUrl);
+    console.log("email to:", email);
+    console.log("email info:", info);
 
-    res.status(200).json({ message: "User registered. Check email for verification." });
+    res
+      .status(200)
+      .json({ message: "User registered. Check email for verification." });
   } catch (error) {
     console.error("Error in signup controller:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -129,7 +138,9 @@ export const login = async (req, res) => {
     }
 
     if (!user.isVerified) {
-      return res.status(403).json({ error: "Please verify your email before logging in." });
+      return res
+        .status(403)
+        .json({ error: "Please verify your email before logging in." });
     }
 
     generateTokenAndSetCookie(user._id, res);

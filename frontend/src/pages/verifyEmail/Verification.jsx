@@ -1,7 +1,9 @@
 import { useAuthContext } from "../../context/AuthContext";
+import useLogout from "../../hooks/useLogout";
 
 const Verification = () => {
   const { authUser } = useAuthContext();
+  const {logout}= useLogout();
 
   return (
     <div className="flex flex-col items-center justify-center mt-20 p-4">
@@ -32,6 +34,16 @@ const Verification = () => {
           </>
         )}
       </div>
+
+      <div className="mt-6">
+        <button
+          onClick={logout}
+          className="btn btn-primary"
+        >
+          Log In
+        </button>
+      </div>
+      
     </div>
   );
 };

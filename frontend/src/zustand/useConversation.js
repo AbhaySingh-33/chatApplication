@@ -6,6 +6,9 @@ const useConversation = create((set) => ({
     unreadMessages: {},
     showDelete: null,
 
+    receiver: null,
+    setreceiver: (receiver) => set({ receiver }),
+
     setMessages: (messages) => set({ messages }),
 
     updateMessageStatus: (messageId, status) =>
