@@ -46,7 +46,7 @@ const MessageContainer = () => {
       socket.emit("call:rejected", { to: incomingCall.fromId });
     }
 
-    socket.off("call:accepted");          // Prevent stacking multiple listeners
+    socket.off("call:accepted"); // Prevent stacking multiple listeners
 
     if (peer && !peer.destroyed) peer.destroy();
     if (myStream.current) {
@@ -65,7 +65,10 @@ const MessageContainer = () => {
   };
 
   const endCall = () => {
-    socket.emit("call:end", { to: selectedConversation._id, from: authUser._id });
+    socket.emit("call:end", {
+      to: selectedConversation._id,
+      from: authUser._id,
+    });
     cleanupCall();
   };
 
@@ -101,7 +104,9 @@ const MessageContainer = () => {
         },
       };
 
-      const stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+      const stream = await navigator.mediaDevices.getUserMedia(
+        mediaConstraints
+      );
       myStream.current = stream;
 
       if (isVideo && myVideo.current) {
@@ -113,7 +118,14 @@ const MessageContainer = () => {
         trickle: false,
         stream: stream,
         config: {
-          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            {
+              urls: "turn:openrelay.metered.ca:80",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+          ],
         },
       });
 
@@ -143,7 +155,7 @@ const MessageContainer = () => {
         cleanupCall();
       });
 
-      socket.off("call:accepted");        // Prevent stacking multiple listeners
+      socket.off("call:accepted"); // Prevent stacking multiple listeners
       const handleCallAccepted = (signal) => {
         if (!newPeer.destroyed) {
           newPeer.signal(signal);
@@ -182,7 +194,9 @@ const MessageContainer = () => {
           autoGainControl: true,
         },
       };
-      const stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+      const stream = await navigator.mediaDevices.getUserMedia(
+        mediaConstraints
+      );
       myStream.current = stream;
 
       if (incomingCall.isVideoCall && myVideo.current) {
@@ -194,12 +208,19 @@ const MessageContainer = () => {
         trickle: false,
         stream: stream,
         config: {
-          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            {
+              urls: "turn:openrelay.metered.ca:80",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+          ],
         },
       });
 
       newPeer.on("signal", (signal) => {
-        socket.emit("call:answer", { signal, to: incomingCall.fromId});
+        socket.emit("call:answer", { signal, to: incomingCall.fromId });
       });
 
       newPeer.on("stream", (remoteStream) => {
@@ -229,41 +250,46 @@ const MessageContainer = () => {
     }
   };
 
-useEffect(() => {
-  if (!socket) return;
+  useEffect(() => {
+    if (!socket) return;
 
-  const handleIncoming = ({ from, signal, callerName, isVideoCall, fromId }) => {
-    setIncomingCall({ from, signal, callerName, isVideoCall, fromId });
-    setreceiver(from);
-  };
+    const handleIncoming = ({
+      from,
+      signal,
+      callerName,
+      isVideoCall,
+      fromId,
+    }) => {
+      setIncomingCall({ from, signal, callerName, isVideoCall, fromId });
+      setreceiver(from);
+    };
 
-  const handleEnd = () => {
-    cleanupCall();
-  };
+    const handleEnd = () => {
+      cleanupCall();
+    };
 
-  const handleRejected = () => {
-    cleanupCall();
-  };
+    const handleRejected = () => {
+      cleanupCall();
+    };
 
-  const handleUnavailable = ({ reason }) => {
-    toast.error(reason || "User is currently on another call.");
-    setIncomingCall(false); // Optional: if you show a 'calling...' state
-    cleanupCall();
-  };
+    const handleUnavailable = ({ reason }) => {
+      toast.error(reason || "User is currently on another call.");
+      setIncomingCall(false); // Optional: if you show a 'calling...' state
+      cleanupCall();
+    };
 
-  socket.on("call:incoming", handleIncoming);
-  socket.on("call:end", handleEnd);
-  socket.on("call:rejected", handleRejected);
-  socket.on("call:unavailable", handleUnavailable);
+    socket.on("call:incoming", handleIncoming);
+    socket.on("call:end", handleEnd);
+    socket.on("call:rejected", handleRejected);
+    socket.on("call:unavailable", handleUnavailable);
 
-  return () => {
-    socket.off("call:incoming", handleIncoming);
-    socket.off("call:end", handleEnd);
-    socket.off("call:rejected", handleRejected);
-    socket.off("call:unavailable", handleUnavailable);
-  };
-}, [socket]);
-
+    return () => {
+      socket.off("call:incoming", handleIncoming);
+      socket.off("call:end", handleEnd);
+      socket.off("call:rejected", handleRejected);
+      socket.off("call:unavailable", handleUnavailable);
+    };
+  }, [socket]);
 
   return (
     <div
