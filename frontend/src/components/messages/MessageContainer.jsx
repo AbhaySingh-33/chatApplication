@@ -43,7 +43,7 @@ const MessageContainer = () => {
 
   const cleanupCall = () => {
     if (incomingCall && !callAccepted) {
-      socket.emit("call:rejected", { to: incomingCall.fromId });
+      socket.emit("call:rejected", { to: incomingCall.fromId, from: authUser._id });
     }
 
     socket.off("call:accepted"); // Prevent stacking multiple listeners
@@ -119,11 +119,19 @@ const MessageContainer = () => {
         stream: stream,
         config: {
           iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
+            { urls: ["stun:bn-turn2.xirsys.com"] },
             {
-              urls: "turn:openrelay.metered.ca:80",
-              username: "openrelayproject",
-              credential: "openrelayproject",
+              username:
+                "Z2pl8YreKImIPLzdxO-sxtgO1msUbImFvRAehu25ArXj7ogBIyqYqonVOUWtk7hRAAAAAGhpIT5BYmhheQ==",
+              credential: "9e93ad80-599f-11f0-bdaa-0242ac140004",
+              urls: [
+                "turn:bn-turn2.xirsys.com:80?transport=udp",
+                "turn:bn-turn2.xirsys.com:3478?transport=udp",
+                "turn:bn-turn2.xirsys.com:80?transport=tcp",
+                "turn:bn-turn2.xirsys.com:3478?transport=tcp",
+                "turns:bn-turn2.xirsys.com:443?transport=tcp",
+                "turns:bn-turn2.xirsys.com:5349?transport=tcp",
+              ],
             },
           ],
         },
@@ -209,11 +217,19 @@ const MessageContainer = () => {
         stream: stream,
         config: {
           iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
+            { urls: ["stun:bn-turn2.xirsys.com"] },
             {
-              urls: "turn:openrelay.metered.ca:80",
-              username: "openrelayproject",
-              credential: "openrelayproject",
+              username:
+                "Z2pl8YreKImIPLzdxO-sxtgO1msUbImFvRAehu25ArXj7ogBIyqYqonVOUWtk7hRAAAAAGhpIT5BYmhheQ==",
+              credential: "9e93ad80-599f-11f0-bdaa-0242ac140004",
+              urls: [
+                "turn:bn-turn2.xirsys.com:80?transport=udp",
+                "turn:bn-turn2.xirsys.com:3478?transport=udp",
+                "turn:bn-turn2.xirsys.com:80?transport=tcp",
+                "turn:bn-turn2.xirsys.com:3478?transport=tcp",
+                "turns:bn-turn2.xirsys.com:443?transport=tcp",
+                "turns:bn-turn2.xirsys.com:5349?transport=tcp",
+              ],
             },
           ],
         },
