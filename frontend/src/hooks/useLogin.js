@@ -5,6 +5,7 @@ import { useAuthContext } from "../context/AuthContext";
 const useLogin = () => {
 	const [loading, setLoading] = useState(false);
 	const { setAuthUser } = useAuthContext();
+	const [show, setshow] = useState(false)
 
 	const login = async (username, password) => {
 		const success = handleInputErrors(username, password);
@@ -25,6 +26,7 @@ const useLogin = () => {
 			localStorage.setItem("chat-user", JSON.stringify(data));
 			setAuthUser(data);
 		} catch (error) {
+			setshow(true);
 			toast.error(error.message);
 			console.log(error.message)
 		} finally {
@@ -32,7 +34,7 @@ const useLogin = () => {
 		}
 	};
 
-	return { loading, login };
+	return { loading, login ,show};
 };
 export default useLogin;
 

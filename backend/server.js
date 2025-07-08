@@ -37,6 +37,8 @@ app.use(
 app.use("/api/auth", authRoutes); // Authentication routes
 app.use("/api/messages", messageRoutes); // Messaging routes
 app.use("/api/users", userRoutes); // User-related routes
+app.use("/api/friends", userRoutes);
+app.use("/api/reset", authRoutes);
 
 
 // Serve frontend static files (for deployment)

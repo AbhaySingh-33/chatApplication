@@ -481,6 +481,7 @@ const NoChatSelected = () => {
           <div
             className="w-26 py-4 rounded-full cursor-pointer"
             onClick={() => navigate("/profile")}
+            title="Go to Profile"
           >
             <img
               src={authUser.profilePic}

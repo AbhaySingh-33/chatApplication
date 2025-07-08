@@ -10,6 +10,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Verification from "./pages/verifyEmail/Verification";
 import Profile from "./pages/home/Profile";
+import ForgotPassword from "./pages/changePassword/ForgotPassword";
+import ResetPassword from "./pages/changePassword/ResetPassword";
 
 function App() {
   const { authUser } = useAuthContext();
@@ -30,6 +32,7 @@ function App() {
         <h1
           className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-wide text-blue-400 cursor-pointer"
           onClick={() => navigate("/")}
+          title="Go to Home"
         >
           CHATTRIX
         </h1>
@@ -72,6 +75,10 @@ function App() {
           />
 
           <Route path="/verify-email/:token" element={<VerifyEmail />} />
+
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+				  <Route path="/reset-password/:token" element={<ResetPassword />} />
+
         </Routes>
       </div>
 

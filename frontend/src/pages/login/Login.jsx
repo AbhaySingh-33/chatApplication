@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useLogin from "../../hooks/useLogin";
 
 const Login = () => {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 
-	const { loading, login } = useLogin();
+	const { loading, login, show } = useLogin();
+	const navigate = useNavigate(); // ✅ useNavigate hook
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -66,6 +67,15 @@ const Login = () => {
 						)}
 					</button>
 				</form>
+
+				{show && (
+					<button 
+						className="btn btn-block btn-sm mt-4 bg-red-600 hover:bg-red-700 text-white"
+						onClick={() => navigate("/forgot-password")} 
+					>			
+						<span className="text-white">Reset Password</span>
+					</button>
+				)}
 			</div>
 		</div>
 	);
