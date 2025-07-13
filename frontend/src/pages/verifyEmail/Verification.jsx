@@ -34,15 +34,6 @@ const Verification = () => {
           </>
         )}
       </div>
-
-      <div className="mt-6">
-        <button
-          onClick={logout}
-          className="btn btn-primary"
-        >
-          Log In
-        </button>
-      </div>
       
     </div>
   );
