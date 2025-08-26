@@ -61,7 +61,7 @@ const Profile = () => {
 
   const fetchFriends = async () => {
     try {
-      const res = await axios.get("/api/friends/list");
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/friends/list`);
       setFriends(res.data);
     } catch (err) {
       console.error("Error fetching friends:", err);
@@ -70,7 +70,7 @@ const Profile = () => {
 
   const handleRemoveFriend = async (friendId) => {
     try {
-      await axios.delete(`/api/friends/${friendId}`);
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/friends/${friendId}`);
       // Remove from local state
       setFriends((prev) => prev.filter((f) => f._id !== friendId));
       if (selectedConversation?._id === friendId) {

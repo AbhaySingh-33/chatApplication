@@ -52,7 +52,7 @@ const useSendMessage = () => {
       }
 
       const res = await fetch(
-        `/api/messages/send/${selectedConversation._id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/messages/send/${selectedConversation._id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -82,7 +82,7 @@ const useSendMessage = () => {
 
   const deleteMessage = async (messageId) => {
     try {
-      const res = await fetch(`/api/messages/${messageId}`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/messages/${messageId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

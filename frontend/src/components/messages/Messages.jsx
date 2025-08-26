@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { format, isValid } from "date-fns"; // Install with: npm install date-fns
+import { format, isValid } from "date-fns"; 
 import useGetMessages from "../../hooks/useGetMessages";
 import MessageSkeleton from "../skeletons/MessageSkeleton";
 import Message from "./Message";
@@ -11,7 +11,7 @@ const groupMessagesByDate = (messages) => {
         messages.forEach((message) => {
             const messageDate = new Date(message.createdAt);
             if (isValid(messageDate)) {
-                const formattedDate = format(messageDate, "yyyy-MM-dd"); // Format as YYYY-MM-DD
+                const formattedDate = format(messageDate, "yyyy-MM-dd"); 
                 if (!groupedMessages[formattedDate]) {
                     groupedMessages[formattedDate] = [];
                 }
@@ -23,11 +23,11 @@ const groupMessagesByDate = (messages) => {
 };
 
 const Messages = () => {
-    const { messages = [], loading } = useGetMessages(); // ✅ Ensure messages is an array
+    const { messages = [], loading } = useGetMessages(); //  Ensure messages is an array
     useListenMessages();
     const lastMessageRef = useRef();
 
-    const groupedMessages = groupMessagesByDate(messages); // ✅ Group messages by date
+    const groupedMessages = groupMessagesByDate(messages); //  Group messages by date
 
     // Auto-scroll to last message
     useEffect(() => {
@@ -38,16 +38,16 @@ const Messages = () => {
 
     return (
         <div className='px-4 flex-1 overflow-auto'>
-            {/* ✅ Render Grouped Messages */}
+            {/*  Render Grouped Messages */}
             {!loading && messages?.length > 0 && 
                 Object.keys(groupedMessages).map((date) => (
                     <div key={date}>
-                        {/* 📅 Date Header */}
+                        {/*  Date Header */}
                         <div className="text-center my-4 text-gray-500 font-semibold">
                             {format(new Date(date), "MMMM d, yyyy")}
                         </div>
 
-                        {/* 📨 Render Messages for this Date */}
+                        {/*  Render Messages for this Date */}
                         {groupedMessages[date].map((message, index) => (
                             <div key={message._id} ref={index === groupedMessages[date].length - 1 ? lastMessageRef : null}>
                                 <Message message={message} />
@@ -57,10 +57,10 @@ const Messages = () => {
                 ))
             }
 
-            {/* ⏳ Loading Skeletons */}
+            {/*  Loading Skeletons */}
             {loading && [...Array(3)].map((_, idx) => <MessageSkeleton key={idx} />)}
 
-            {/* 📨 No Messages */}
+            {/*  No Messages */}
             {!loading && messages?.length === 0 && (
                 <p className='text-center'>Send a message to start the conversation</p>
             )}

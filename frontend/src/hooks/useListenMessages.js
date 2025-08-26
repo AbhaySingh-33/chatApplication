@@ -16,11 +16,11 @@ const useListenMessages = () => {
         
                     if (selectedConversation._id === filteredUser._id) {
                         setMessages([...messages, newMessage]);
-                         // 📩 Send messageSeen event when a message is received
+                         // Send messageSeen event when a message is received
                     socket.emit("messageSeen", { messageId: newMessage._id, senderId: newMessage.senderId });
                     } else {
                         incrementUnreadMessages(filteredUser._id);
-                         // 📩 Send messageDelivered event when a message is received
+                         //  Send messageDelivered event when a message is received
                     socket.emit("messageDelivered", { messageId: newMessage._id, senderId: newMessage.senderId });
         
                     }
@@ -52,7 +52,7 @@ const useListenMessages = () => {
     useEffect(() => {
         if (!socket) return;
 
-        // ✅ Listen for message status updates (Sent, Delivered, Seen)
+        //  Listen for message status updates (Sent, Delivered, Seen)
         socket.on("messageStatusUpdated", ({ messageId, status }) => {
             updateMessageStatus(messageId, status);
         });
@@ -67,7 +67,7 @@ const useListenMessages = () => {
         if (!socket) return;
     
         socket.on("allmessageStatusUpdated", ({ receiverId, status }) => {
-            // ✅ Update all messages in the selected conversation
+            //  Update all messages in the selected conversation
             if (selectedConversation._id === receiverId) {
                 updateAllMessageStatuses(status);
             }

@@ -3,7 +3,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import { extractTime } from "../../utils/extractTime";
 import useConversation from "../../zustand/useConversation";
 import useSendMessage from "../../hooks/useSendMessage";
-import useReactToMessage from "../../hooks/useReactToMessage"; // ✅ Import the hook
+import useReactToMessage from "../../hooks/useReactToMessage"; 
 import { BsReply, BsEmojiSmile } from "react-icons/bs"; // Icons for reply & reactions
 import EmojiPicker from "emoji-picker-react";
 
@@ -11,7 +11,7 @@ const Message = ({ message }) => {
     const { authUser } = useAuthContext();
     const { selectedConversation, setShowDelete, showDelete } = useConversation();
     const { deleteMessage, sendMessage } = useSendMessage();
-    const { reactToMessage, loading: reacting } = useReactToMessage(); // ✅ Use reaction hook
+    const { reactToMessage, loading: reacting } = useReactToMessage(); //  Use reaction hook
 
     const [reactionMenuOpen, setReactionMenuOpen] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null); // Track reply
@@ -33,12 +33,12 @@ const Message = ({ message }) => {
         if (fromMe) setShowDelete(message._id);
     };
 
-    // ✅ Handle Reply
+    // Handle Reply
     const handleReply = () => {
         setReplyingTo((prev) => (prev ? null : message));
     };
 
-    // ✅ Handle Sending Reply
+    // Handle Sending Reply
     const sendReply = async (replyText) => {
         if (!replyText.trim()) return;
         
@@ -57,7 +57,7 @@ const Message = ({ message }) => {
     };
     
 
-    // ✅ Handle Reaction using the hook
+    //  Handle Reaction using the hook
     const handleReaction = (emojiObject) => {
         const emoji = emojiObject.emoji; // Extract emoji
         reactToMessage(message._id, emoji); // Call hook function
@@ -68,7 +68,7 @@ const Message = ({ message }) => {
 	const handleDeleteMessage = async () => {
 		await deleteMessage(message._id); // Ensure async deletion
 		setShowDelete(null);
-		//if (onDelete) onDelete(); // ✅ Refresh messages after deletion
+		//if (onDelete) onDelete(); //  Refresh messages after deletion
 	};
 
     return (
@@ -80,21 +80,21 @@ const Message = ({ message }) => {
             </div>
 
             <div className="relative flex flex-col mt-6">
-                {/* ✅ Display Reply if exists */}
+                {/*  Display Reply if exists */}
                 {message.replyTo && (
                     <div className="reply-box bg-blue-950 p-2  rounded-md text-gray-200">
                         <p className="text-xs ">Replying to:  {message.replyTo.text}</p>
                     </div>
                 )}
 
-                {/* 📜 Text Message */}
+                {/*  Text Message */}
                 {message.message && (
                     <div className={`chat-bubble text-white ${bubbleBgColor} ${shakeClass} pb-2`}>
                         {message.message}
                     </div>
                 )}
 
-                {/* 🖼️ Image/Video Message */}
+                {/* Image/Video Message */}
                 {message.media && (
                     message.media.match(/\.(jpeg|jpg|png|gif|webp)$/i) ? (
                         <img
@@ -111,7 +111,7 @@ const Message = ({ message }) => {
                     )
                 )}
 
-                {/* ✅ Display Reactions */}
+                {/* Display Reactions */}
                 {message.reactions?.length > 0 && (
                     <div className="reactions flex gap-1 mt-1">
                         {message.reactions.map((r, index) => (
@@ -120,7 +120,7 @@ const Message = ({ message }) => {
                     </div>
                 )}
 
-                {/* ✅ Action Buttons (Reply & React) */}
+                {/*  Action Buttons (Reply & React) */}
                 <div className="chat-footer opacity-50 text-xs flex gap-1 items-center">
                     {formattedTime}
                     {fromMe && <span className="ml-2 text-gray-400">{statusText}</span>}
@@ -128,14 +128,14 @@ const Message = ({ message }) => {
                     <BsEmojiSmile className="cursor-pointer text-gray-400" onClick={() => setReactionMenuOpen(!reactionMenuOpen)} />
                 </div>
 
-                {/* ✅ Reaction Menu */}
+                {/*  Reaction Menu */}
                 {reactionMenuOpen && (
                     <div className="absolute bottom-8 left-0">
                     <EmojiPicker onEmojiClick={handleReaction} />
                 </div>
                 )}
 
-                {/* ✅ Reply Input Box */}
+                {/*  Reply Input Box */}
                 {replyingTo && (
                     <div className="reply-input mt-2 p-2 bg-blue-950 rounded-md flex items-center">
                         <input
@@ -150,7 +150,7 @@ const Message = ({ message }) => {
                     </div>
                 )}
 
-                {/* ❌ Delete Message Option */}
+                {/*  Delete Message Option */}
 				{showDelete === message._id &&(
 					<div
 						className="absolute bottom-6 right-0 bg-gray-700 text-white text-sm p-2 rounded shadow-md cursor-pointer"

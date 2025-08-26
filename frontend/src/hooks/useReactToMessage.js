@@ -14,7 +14,7 @@ const useReactToMessage = () => {
 
         setLoading(true);
         try {
-            const { data } = await axios.post(`/api/messages/react`, { messageId, emoji });
+            const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/messages/react`, { messageId, emoji });
 
             // ✅ Update messages locally in Zustand store
             const updatedMessages = messages.map((msg) =>

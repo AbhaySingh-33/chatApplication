@@ -28,7 +28,7 @@ const useSignup = () => {
 				formData.append("profilePic", profilePic); // Add the profile picture if it exists
 			}
 
-			const res = await fetch("/api/auth/signup", {
+			const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, {
 				method: "POST",
 				body: formData, // Send FormData directly
 			});

@@ -24,10 +24,10 @@ const Conversation = ({ conversation, lastIdx, emoji }) => {
 
   const handleSelectConversation = () => {
     setSelectedConversation(conversation);
-    resetUnreadMessages(conversation._id); // ✅ Reset unread count when opening chat
+    resetUnreadMessages(conversation._id); // Reset unread count when opening chat
     console.log(conversation.profilePic);
 
-    // ✅ Emit event to mark all messages as seen
+    //  Emit event to mark all messages as seen
     socket.emit("allmessageSeen", {
       receiverId: authUser._id,
       senderId: conversation._id,
@@ -40,7 +40,7 @@ const Conversation = ({ conversation, lastIdx, emoji }) => {
     e.stopPropagation(); // prevent selecting conversation on button click
 
     try {
-      const res = await fetch("/api/friends/add", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/friends/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -96,7 +96,7 @@ const Conversation = ({ conversation, lastIdx, emoji }) => {
               {isFriend ? "✅" : "+"}
             </button>
 
-            {/* ✅ Show Unread Message Count */}
+            {/*  Show Unread Message Count */}
             {unreadCount > 0 && (
               <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                 {unreadCount}
