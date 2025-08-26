@@ -31,6 +31,7 @@ const useSignup = () => {
 			const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, {
 				method: "POST",
 				body: formData, // Send FormData directly
+				credentials: "include",
 			});
 
 			const data = await res.json();

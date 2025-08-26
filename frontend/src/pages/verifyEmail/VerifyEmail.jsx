@@ -11,7 +11,7 @@ const VerifyEmail = () => {
 	useEffect(() => {
 		const verify = async () => {
 			try {
-				await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/verify-email/${token}`);
+				await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/verify-email/${token}`,{ withCredentials: true });
 				toast.success("Email verified! You can now log in.");
 				navigate("/login");
 			} catch (err) {

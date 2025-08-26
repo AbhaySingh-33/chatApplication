@@ -61,6 +61,7 @@ const useSendMessage = () => {
             media: mediaUrl,
             replyTo: replyTo || null,
           }),
+          credentials: "include",
         }
       );
 
@@ -87,6 +88,7 @@ const useSendMessage = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
       });
 
       const data = await res.json();

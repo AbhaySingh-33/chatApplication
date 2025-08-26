@@ -47,6 +47,7 @@ const Conversation = ({ conversation, lastIdx, emoji }) => {
           Authorization: `Bearer ${authUser.token}`,
         },
         body: JSON.stringify({ friendId: conversation._id }),
+        credentials: "include",
       });
 
       if (res.ok) {

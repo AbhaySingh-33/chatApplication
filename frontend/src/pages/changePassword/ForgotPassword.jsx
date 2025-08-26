@@ -5,13 +5,13 @@ import toast from "react-hot-toast";
 const ForgotPassword = () => {
 	const [email, setEmail] = useState("");
 	const [success, setSuccess] = useState(false);
-	const [loading, setLoading] = useState(false); // ✅ loading state
+	const [loading, setLoading] = useState(false); //  loading state
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setLoading(true); // Start loading
 		try {
-			await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/reset/reset-password`, { email });
+			await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/reset/reset-password`, { email },{ withCredentials: true });
 			setSuccess(true);
 			toast.success("Reset link sent to your email.");
 			setEmail("");

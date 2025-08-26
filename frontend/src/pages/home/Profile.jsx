@@ -26,10 +26,10 @@ const Profile = () => {
         profilePicUrl = await uploadToCloudinary(editProfilePic);
       }
 
-      const res = await axios.put("/api/users/update-profile", {
+      const res = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/users/update-profile`, {
         username: editUsername,
         profilePic: profilePicUrl,
-      });
+      },{ withCredentials: true });
 
       localStorage.setItem("chat-user", JSON.stringify(res.data));
       setAuthUser(res.data); // this updates context
@@ -61,7 +61,7 @@ const Profile = () => {
 
   const fetchFriends = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/friends/list`);
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/friends/list`,{ withCredentials: true });
       setFriends(res.data);
     } catch (err) {
       console.error("Error fetching friends:", err);
@@ -70,7 +70,7 @@ const Profile = () => {
 
   const handleRemoveFriend = async (friendId) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/friends/${friendId}`);
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/friends/${friendId}`,{ withCredentials: true });
       // Remove from local state
       setFriends((prev) => prev.filter((f) => f._id !== friendId));
       if (selectedConversation?._id === friendId) {
