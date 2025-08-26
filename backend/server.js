@@ -28,7 +28,7 @@ app.use(cookieParser()); // Parse cookies from requests
 // Enable CORS with credentials
 app.use(
 	cors({
-		origin: "http://localhost:5173", // Change this to your frontend's deployed URL for production
+		origin: process.env.FRONTEND_URL || "http://localhost:5173", // Change this to your frontend's deployed URL for production
 		credentials: true,
 	})
 );
