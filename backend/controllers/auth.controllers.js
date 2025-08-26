@@ -143,14 +143,13 @@ export const login = async (req, res) => {
         .json({ error: "Please verify your email before logging in." });
     }
 
-    const userToken = generateTokenAndSetCookie(user._id, res);
+    generateTokenAndSetCookie(user._id, res);
 
     res.status(200).json({
       _id: user._id,
       fullName: user.fullName,
       username: user.username,
       profilePic: user.profilePic,
-      token: userToken
     });
   } catch (error) {
     console.error("Error in login controller:", error);
