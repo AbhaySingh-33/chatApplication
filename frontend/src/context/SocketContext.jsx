@@ -15,7 +15,7 @@ export const SocketContextProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (authUser) {
-			const newSocket = io("https://chatapplication-2-1vif.onrender.com", {
+			const newSocket = io(import.meta.env.VITE_BACKEND_URL, {
 				query: { userId: authUser._id },
 				withCredentials: true, // Ensure proper authentication handling
 			});

@@ -18,12 +18,12 @@ function App() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-start p-4">
+    <div className="relative h-[100vh] w-full bg-cover bg-center flex flex-col items-center justify-start p-4">
       {/* Dark Overlay */}
       <div className="absolute inset-0  bg-opacity-60 z-0"></div>
 
       {/* Header */}
-      <div className="relative z-10 mt-16 mb-6  px-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
+      <div className="relative z-10 mt-8 mb-6  px-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
         <img
           src="/logo.png"
           alt="Chat Application Logo"
