@@ -88,11 +88,11 @@ const Profile = () => {
 
   return (
     <div className="flex items-center justify-center  p-2 ">
-      <div className="flex flex-col sm:flex-row w-full max-w-5xl h-[80vh] rounded-2xl overflow-hidden shadow-2xl  backdrop-blur-lg">
+      <div className="flex w-full max-w-5xl h-[70vh] rounded-2xl overflow-y-auto shadow-2xl backdrop-blur-lg">
         {/* Sidebar */}
         <div
           className={`w-full sm:w-[35%] bg-white/90 p-6 flex flex-col border-r border-gray-200
-            ${selectedConversation?._id ? "hidden" : "flex"} sm:flex`}
+            ${selectedConversation?._id ? "hidden" : "flex"} sm:flex `}
         >
           {/* Profile */}
           <div className="flex flex-col items-center mb-6">
@@ -110,18 +110,20 @@ const Profile = () => {
                   placeholder="Username"
                   value={editUsername}
                   onChange={(e) => setEditUsername(e.target.value)}
+                  title="Update your username"
                 />
                 <input
                   type="file"
                   accept="image/*"
-                  className="mt-4 py-1 w-full text-sm bg-gray-700"
+                  className="mt-4 py-1 w-full text-sm bg-gray-700 cursor-pointer"
                   onChange={(e) => setEditProfilePic(e.target.files[0])}
+                  title="Update your profile picture"
                 />
 
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={handleUpdateProfile}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 cursor-pointer"
                   >
                     Save
                   </button>
@@ -131,7 +133,7 @@ const Profile = () => {
                       setEditUsername(authUser.username);
                       setEditProfilePic(authUser.profilePic);
                     }}
-                    className="px-4 py-2 bg-gray-800 rounded-md hover:bg-gray-900"
+                    className="px-4 py-2 bg-gray-800 rounded-md hover:bg-gray-900 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -144,7 +146,7 @@ const Profile = () => {
                 </h3>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="mt-2 px-4 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                  className="mt-2 px-4 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 cursor-pointer"
                 >
                   Edit Profile
                 </button>
@@ -153,7 +155,7 @@ const Profile = () => {
 
             <button
               onClick={logout}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 w-full"
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 w-full cursor-pointer"
             >
               Log Out
             </button>
@@ -191,7 +193,7 @@ const Profile = () => {
                         e.stopPropagation();
                         handleRemoveFriend(friend._id);
                       }}
-                      className="text-red-500 hover:text-red-700 "
+                      className="text-red-500 hover:text-red-700 cursor-pointer"
                     >
                       ✕
                     </button>
@@ -208,15 +210,9 @@ const Profile = () => {
             selectedConversation?._id ? "flex" : "hidden sm:flex"
           } flex-1 flex flex-col`}
         >
-          {/* Chat Header (only on mobile) */}
-          <div className="flex sm:hidden items-center justify-between bg-gray-800 text-white px-4 py-2 shadow-md sticky top-0 z-10">
-            <div className="flex gap-3">
-              <button onClick={() => setSelectedConversation(null)}>❌</button>
-            </div>
-          </div>
 
           {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto">
+          <div >
             <MessageContainer />
           </div>
         </div>

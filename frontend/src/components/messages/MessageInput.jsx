@@ -88,7 +88,7 @@ const handleKeyUp = () => {
                     {/* Emoji Button */}
                     <button
                         type="button"
-                        className="absolute inset-y-0 left-3 flex items-center "
+                        className="absolute inset-y-0 left-3 flex items-center cursor-pointer "
                         onClick={() => setShowEmojiPicker((prev) => !prev)}
                     >
                         <BsEmojiSmile />
@@ -138,7 +138,7 @@ const handleKeyUp = () => {
                     />
 
                     {/* Send Button */}
-                    <button type="submit" className="absolute inset-y-0 right-3 flex items-center"
+                    <button type="submit" className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
                     onClick={() => showEmojiPicker && setShowEmojiPicker(false)}>
                         {loading ? <div className="loading loading-spinner"></div> : <BsSend />}
                     </button>

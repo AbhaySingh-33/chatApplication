@@ -27,7 +27,9 @@ function App() {
         <img
           src="/logo.png"
           alt="Chat Application Logo"
-          className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16"
+          className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 cursor-pointer"
+          onClick={() => navigate("/")}
+          title="Go to Home"
         />
         <h1
           className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-wide text-blue-400 cursor-pointer"

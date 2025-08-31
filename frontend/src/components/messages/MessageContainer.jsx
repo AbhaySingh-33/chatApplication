@@ -309,23 +309,23 @@ const MessageContainer = () => {
 
   return (
     <div
-      className="flex flex-col h-[100dvh] sm:h-auto w-full sm:min-w-[450px] backdrop-filter backdrop-blur-lg"
+      className="flex flex-col h-[70dvh] sm:h-[70vh] w-full sm:min-w-[450px] backdrop-filter backdrop-blur-lg"
       onClick={() => setShowDelete(null)}
     >
       {isEmptyObject(selectedConversation) ? (
         <NoChatSelected />
       ) : (
         <>
-          <div className="bg-slate-500 px-4 py-2 flex justify-between items-center">
+          <div className="bg-slate-500 px-4 py-2 flex justify-between items-center sticky top-0 z-20">
             <div>
               <span className="label-text">To:</span>{" "}
-              <span className="text-gray-900 font-bold">
+              <span className="text-gray-900 font-bold text-sm sm:text-base">
                 {selectedConversation.fullName}
               </span>
             </div>
             <div className="flex gap-3">
               <Phone
-                className="w-6 h-6 text-white cursor-pointer hover:text-green-400"
+                className="w-5 h-5 sm:w-6 sm:h-6 text-white cursor-pointer hover:text-green-400"
                 onClick={() => {
                   if (callStarted) return;
                   setreceiver({ ...selectedConversation });
@@ -333,7 +333,7 @@ const MessageContainer = () => {
                 }}
               />
               <Video
-                className="w-6 h-6 text-white cursor-pointer hover:text-blue-400"
+                className="w-5 h-5 sm:w-6 sm:h-6 text-white cursor-pointer hover:text-blue-400"
                 onClick={() => {
                   if (callStarted) return;
                   setreceiver({ ...selectedConversation });
