@@ -36,13 +36,13 @@ io.on("connection", (socket) => {
   socket.on("call:user", ({ to, signal, from, callerName, isVideoCall, fromId }) => {
   const receiverSocketId = getReceiverSocketId(to);
 
-  // 🔒 Prevent if either caller or receiver is busy
+  // Prevent if either caller or receiver is busy
   if (activeCalls[to] || activeCalls[fromId]) {
     io.to(socket.id).emit("call:unavailable", { reason: "User is currently on another call" });
     return;
   }
 
-  // ✅ Set both users as in call
+  //  Set both users as in call
   activeCalls[to] = fromId;
   activeCalls[fromId] = to;
 
@@ -57,13 +57,13 @@ io.on("connection", (socket) => {
     io.to(receiverSocketId).emit("call:accepted", signal);
   });
 
-  // ✅ Handle call end
+  //  Handle call end
 socket.on("call:end", ({ to, from }) => {
   const receiverSocketId = getReceiverSocketId(to);
   if (receiverSocketId) {
     io.to(receiverSocketId).emit("call:end");
   }
-  // 🧹 Clean active calls
+  //  Clean active calls
   delete activeCalls[to];
   delete activeCalls[from];
 });
@@ -73,13 +73,13 @@ socket.on("call:rejected", ({ to, from }) => {
   if (receiverSocketId) {
     io.to(receiverSocketId).emit("call:rejected");
   }
-  // 🧹 Clean active calls
+  //  Clean active calls
   delete activeCalls[to];
   delete activeCalls[from];
 });
 
 
-  // ✅ Mark message as "delivered" when received
+  //  Mark message as "delivered" when received
   socket.on("messageDelivered", async ({ messageId, senderId }) => {
     if (!messageId) return;
 
@@ -94,7 +94,7 @@ socket.on("call:rejected", ({ to, from }) => {
     }
   });
 
-  // ✅ Mark message as "seen" when opened
+  // Mark message as "seen" when opened
   socket.on("messageSeen", async ({ messageId, senderId }) => {
     if (!messageId) return;
 
@@ -138,17 +138,17 @@ socket.on("call:rejected", ({ to, from }) => {
     if (!receiverId || !senderId) return;
 
     try {
-      // ✅ Update all messages to "seen" in the database
+      //  Update all messages to "seen" in the database
       await Message.updateMany(
         { receiverId, senderId, status: { $ne: "seen" } },
         { $set: { status: "seen" } }
       );
 
-      // ✅ Get sender's socket ID
+      //  Get sender's socket ID
       const senderSocketId = getReceiverSocketId(senderId);
 
       if (senderSocketId) {
-        // ✅ Notify sender in real-time that messages are seen
+        //  Notify sender in real-time that messages are seen
         io.to(senderSocketId).emit("allmessageStatusUpdated", {
           senderId,
           receiverId, // Include receiverId for better tracking
