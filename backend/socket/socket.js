@@ -64,7 +64,7 @@ io.on("connection", (socket) => {
   socket.on("call:user", ({ to, signal, from, callerName, isVideoCall, fromId }) => {
   const receiverSocketId = getReceiverSocketId(to);
 
-  //  Prevent if either caller or receiver is busy
+  // 🔒 Prevent if either caller or receiver is busy
   if (activeCalls[to] || activeCalls[fromId]) {
     io.to(socket.id).emit("call:unavailable", { reason: "User is currently on another call" });
     return;
@@ -122,7 +122,7 @@ socket.on("call:rejected", ({ to, from }) => {
     }
   });
 
-  //  Mark message as "seen" when opened
+  // ✅ Mark message as "seen" when opened
   socket.on("messageSeen", async ({ messageId, senderId }) => {
     if (!messageId) return;
 
