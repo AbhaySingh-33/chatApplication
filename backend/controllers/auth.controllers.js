@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
 import generateTokenAndSetCookie from "../utils/generateToken.js";
-import multer from "multer";
+import multer from "multer";  // ye ek middleware hai jo parse karta hai file to uske file name se aur req.file (object me dal deta hai)
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import dotenv from "dotenv";
+import dotenv from "dotenv";  // ye env me strored variables ko process.env se acces krne me help karta hai
 dotenv.config();
 
 import pkg from "cloudinary";
@@ -18,7 +18,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Configure Multer-Cloudinary storage
+// Configure Multer-Cloudinary storage 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -27,7 +27,7 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage });     //ye ek multer ka middleware hai
 
 export const signup = async (req, res) => {
   try {
@@ -88,7 +88,7 @@ export const signup = async (req, res) => {
     const info = await transporter.sendMail({
       from: `"CHATTRIX" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Welcome to ChatApp! Verify your email ✅",
+      subject: "Welcome to ChatApp! Verify your email",
       html: `<p>Hi ${fullName},</p>
        <p>Thanks for signing up! Click <a href="${verificationUrl}">here to verify</a> your email address.</p>
        <p>This link expires in 24 hours.</p>`,

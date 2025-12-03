@@ -47,7 +47,12 @@ const MessageInput = () => {
 	// Declare a timeout reference outside the functions
 let typingTimeout = null;
 
-const handleKeyDown = () => {
+const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault(); // Prevents new line
+        handleSubmit(e);    // Send message
+        return;
+    }
     // Emit the "typing" event when the user starts typing
     socket.emit("typing", { 
         senderId: socket.id, 

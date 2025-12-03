@@ -89,7 +89,8 @@ const Message = ({ message }) => {
 
                 {/*  Text Message */}
                 {message.message && (
-                    <div className={`chat-bubble text-white ${bubbleBgColor} ${shakeClass} pb-2`}>
+                    <div className={`whitespace-pre-line break-words break-all chat-bubble text-white
+                     ${bubbleBgColor} ${shakeClass} pb-2 max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl`}>
                         {message.message}
                     </div>
                 )}

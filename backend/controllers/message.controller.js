@@ -30,8 +30,8 @@ export const sendMessage = async (req, res) => {
             receiverId,
             message: text || "",
             media: media || null,
-            status: "sent", // ✅ Initially, set status as "sent"
-            replyTo: replyTo ? { messageId: replyTo.messageId, text: replyTo.message } : null, // ✅ Store replied message
+            status: "sent", //  Initially, set status as "sent"
+            replyTo: replyTo ? { messageId: replyTo.messageId, text: replyTo.message } : null, //  Store replied message
         });
 
         conversation.messages.push(newMessage._id);
@@ -58,14 +58,14 @@ export const getMessages = async (req, res) => {
         const { id: userToChatId } = req.params;
         const senderId = req.user._id;
 
-        // ✅ Find conversation where both users are participants
+        //  Find conversation where both users are participants
         const conversation = await Conversation.findOne({
             participants: { $all: [senderId, userToChatId] },
         }).populate({
             path: "messages",
-            select: "senderId receiverId message media status reactions replyTo createdAt", // ✅ Added "reactions"
-            options: { sort: { createdAt: 1 } }, // ✅ Sort messages oldest to newest
-        }).lean(); // ✅ Faster performance
+            select: "senderId receiverId message media status reactions replyTo createdAt", //  Added "reactions"
+            options: { sort: { createdAt: 1 } }, // Sort messages oldest to newest
+        }).lean(); // Faster performance
 
         if (!conversation) {
             const senderSocketId = getReceiverSocketId(senderId);
@@ -75,16 +75,16 @@ export const getMessages = async (req, res) => {
             return res.status(404).json({ error: "No Conversation yet!" });
         } 
 
-        // ✅ Format messages properly to include text, media, and reactions
+        //  Format messages properly to include text, media, and reactions
         const formattedMessages = conversation.messages.map((msg) => ({
             _id: msg._id,
             senderId: msg.senderId,
             receiverId: msg.receiverId,
             message: msg.message || null, // Ensures message can be null
             media: msg.media || null, // Media (image/video) URL
-            status: msg.status, // ✅ Include status
-            reactions: msg.reactions || [], // ✅ Include reactions
-            replyTo: msg.replyTo || null, // ✅ Include reply message details
+            status: msg.status, //  Include status
+            reactions: msg.reactions || [], //  Include reactions
+            replyTo: msg.replyTo || null, // Include reply message details
             createdAt: msg.createdAt,
         }));
 
@@ -101,25 +101,25 @@ export const reactToMessage = async (req, res) => {
         const { messageId, emoji } = req.body;
         const userId = req.user._id;
 
-        // ✅ Check if the user already reacted
+        // Check if the user already reacted
         const message = await Message.findById(messageId);
         const existingReaction = message.reactions.find(r => r.userId.toString() === userId.toString());
 
         if (existingReaction) {
-            // ✅ Update existing reaction if different, else remove it
+            //  Update existing reaction if different, else remove it
             if (existingReaction.emoji === emoji) {
                 message.reactions = message.reactions.filter(r => r.userId.toString() !== userId.toString());
             } else {
                 existingReaction.emoji = emoji;
             }
         } else {
-            // ✅ Add new reaction
+            //  Add new reaction
             message.reactions.push({ userId, emoji });
         }
 
         await message.save();
 
-        // ✅ Emit real-time update
+        //  Emit real-time update
         io.emit("reactionUpdated", { messageId, reactions: message.reactions });
 
         res.status(200).json(message);

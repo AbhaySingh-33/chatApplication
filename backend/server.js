@@ -9,8 +9,10 @@ import messageRoutes from "./routes/message.routes.js";
 import userRoutes from "./routes/user.routes.js";
 
 import connectToMongoDB from "./db/connectToMongoDB.js";
-import { app, server } from "./socket/socket.js";
+import { app, server, io } from "./socket/socket.js";
+import { initializeRedis, closeRedis } from "./utils/redis.js";
 
+// use for serving static files
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename); // For resolving directory paths
@@ -41,7 +43,7 @@ app.use("/api/friends", userRoutes);
 app.use("/api/reset", authRoutes);
 
 
-// Serve frontend static files (for deployment)
+// Serve frontend static files (for deployment)  express.static is middleware serve ststic files whithout creating routes
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
 // Handle all other routes and serve the frontend app
@@ -52,5 +54,20 @@ app.get("*", (req, res) => {
 // Ensure MongoDB is connected before starting the server
 server.listen(PORT, async () => {
 	await connectToMongoDB(); // Connect to MongoDB
+	await initializeRedis(); // Initialize Redis for Socket.IO adapter (optional)
 	console.log(`Server Running on port ${PORT}`);
 });
+
+// Graceful shutdown
+process.on("SIGTERM", async () => {
+	console.log("SIGTERM received, shutting down gracefully");
+	await closeRedis();
+	process.exit(0);
+});
+
+process.on("SIGINT", async () => {
+	console.log("SIGINT received, shutting down gracefully");
+	await closeRedis();
+	process.exit(0);
+});
+

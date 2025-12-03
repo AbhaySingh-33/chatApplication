@@ -11,7 +11,7 @@ const Home = () => {
 
   return (
     <div className="flex sm:h-[450px] md:h-[550px] rounded-lg overflow-hidden bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0 w-full">
-      <div className="flex flex-col sm:flex">
+      <div className="flex flex-col sm:flex h-full">
         {/* Small screen top bar (hide if conversation selected) */}
         {!selectedConversation?._id && (
           <div className="sm:hidden flex items-center gap-3 p-3 border-b bg-gray-700 shadow-md">
@@ -30,7 +30,7 @@ const Home = () => {
         <div
           className={`${
             selectedConversation?._id ? "hidden sm:flex" : "flex"
-          } w-full sm:w-[95%]`}
+          } w-full sm:w-[95%] h-full flex-col overflow-hidden`}
         >
           <Sidebar />
         </div>

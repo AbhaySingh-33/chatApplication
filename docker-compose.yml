@@ -1,0 +1,40 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: chatapp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --loglevel notice
+    networks:
+      - chatapp-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Optional: MongoDB service (if you want to run it in Docker too)
+  # mongodb:
+  #   image: mongo:7
+  #   container_name: chatapp-mongo
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo_data:/data/db
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: example
+  #   networks:
+  #     - chatapp-network
+  #   restart: unless-stopped
+
+volumes:
+  redis_data:
+  # mongo_data:
+
+networks:
+  chatapp-network:
+    driver: bridge

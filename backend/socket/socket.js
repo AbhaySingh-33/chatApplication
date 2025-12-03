@@ -2,6 +2,8 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 import Message from "../models/message.model.js";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { getRedisClients, isRedisConnected } from "../utils/redis.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -15,6 +17,32 @@ const io = new Server(server, {
     credentials: true, // Ensure cookies and auth headers are passed
   },
 });
+
+// ==================== REDIS ADAPTER SETUP ====================
+// Initialize Redis adapter for multi-server scalability
+// This allows Socket.IO to broadcast messages across multiple server instances
+const setupRedisAdapter = async () => {
+  try {
+    // Give Redis time to connect (it connects asynchronously in server.js)
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    if (isRedisConnected()) {
+      const { pubClient, subClient } = getRedisClients();
+      if (pubClient && subClient) {
+        io.adapter(createAdapter(pubClient, subClient));
+        console.log(" Socket.IO Redis adapter initialized");
+      }
+    } else {
+      console.log("Redis not available, using default in-memory adapter");
+    }
+  } catch (error) {
+    console.error("Error setting up Redis adapter:", error.message);
+    console.log(" Falling back to default in-memory adapter");
+  }
+};
+
+setupRedisAdapter();
+// ================================================================
 
 const userSocketMap = {}; // {userId: socketId}
 const activeCalls = {}; // { userId: peerUserId }
@@ -36,13 +64,13 @@ io.on("connection", (socket) => {
   socket.on("call:user", ({ to, signal, from, callerName, isVideoCall, fromId }) => {
   const receiverSocketId = getReceiverSocketId(to);
 
-  // 🔒 Prevent if either caller or receiver is busy
+  //  Prevent if either caller or receiver is busy
   if (activeCalls[to] || activeCalls[fromId]) {
     io.to(socket.id).emit("call:unavailable", { reason: "User is currently on another call" });
     return;
   }
 
-  // ✅ Set both users as in call
+  //  Set both users as in call
   activeCalls[to] = fromId;
   activeCalls[fromId] = to;
 
@@ -57,13 +85,13 @@ io.on("connection", (socket) => {
     io.to(receiverSocketId).emit("call:accepted", signal);
   });
 
-  // ✅ Handle call end
+  //  Handle call end
 socket.on("call:end", ({ to, from }) => {
   const receiverSocketId = getReceiverSocketId(to);
   if (receiverSocketId) {
     io.to(receiverSocketId).emit("call:end");
   }
-  // 🧹 Clean active calls
+  //  Clean active calls
   delete activeCalls[to];
   delete activeCalls[from];
 });
@@ -73,13 +101,13 @@ socket.on("call:rejected", ({ to, from }) => {
   if (receiverSocketId) {
     io.to(receiverSocketId).emit("call:rejected");
   }
-  // 🧹 Clean active calls
+  //  Clean active calls
   delete activeCalls[to];
   delete activeCalls[from];
 });
 
 
-  // ✅ Mark message as "delivered" when received
+  //  Mark message as "delivered" when received
   socket.on("messageDelivered", async ({ messageId, senderId }) => {
     if (!messageId) return;
 
@@ -94,7 +122,7 @@ socket.on("call:rejected", ({ to, from }) => {
     }
   });
 
-  // ✅ Mark message as "seen" when opened
+  //  Mark message as "seen" when opened
   socket.on("messageSeen", async ({ messageId, senderId }) => {
     if (!messageId) return;
 
@@ -138,17 +166,17 @@ socket.on("call:rejected", ({ to, from }) => {
     if (!receiverId || !senderId) return;
 
     try {
-      // ✅ Update all messages to "seen" in the database
+      //  Update all messages to "seen" in the database
       await Message.updateMany(
         { receiverId, senderId, status: { $ne: "seen" } },
         { $set: { status: "seen" } }
       );
 
-      // ✅ Get sender's socket ID
+      //  Get sender's socket ID
       const senderSocketId = getReceiverSocketId(senderId);
 
       if (senderSocketId) {
-        // ✅ Notify sender in real-time that messages are seen
+        //  Notify sender in real-time that messages are seen
         io.to(senderSocketId).emit("allmessageStatusUpdated", {
           senderId,
           receiverId, // Include receiverId for better tracking

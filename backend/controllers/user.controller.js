@@ -13,7 +13,7 @@ export const getUsersForSidebar = async (req, res) => {
 	}
 };
 
-// ✅ Add Friend
+//  Add Friend
 export const addFriend = async (req, res) => {
 	try {
 		const userId = req.user._id;
@@ -35,7 +35,7 @@ export const addFriend = async (req, res) => {
 	}
 };
 
-// ✅ Get Friend List
+//  Get Friend List
 export const getFriends = async (req, res) => {
 	try {
 		const userId = req.user._id;
