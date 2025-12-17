@@ -316,16 +316,16 @@ const MessageContainer = () => {
         <NoChatSelected />
       ) : (
         <>
-          <div className="bg-slate-500 px-4 py-2 flex justify-between items-center sticky top-0 z-20">
+          <div className="bg-blue-900/40 backdrop-blur-sm px-4 py-3 flex justify-between items-center sticky top-0 z-20 border-b border-blue-300/20 animate-fade-in">
             <div>
-              <span className="label-text">To:</span>{" "}
-              <span className="text-gray-900 font-bold text-sm sm:text-base">
+              <span className="text-blue-200 text-sm">To:</span>{" "}
+              <span className="text-white font-bold text-sm sm:text-base">
                 {selectedConversation.fullName}
               </span>
             </div>
             <div className="flex gap-3">
               <Phone
-                className="w-5 h-5 sm:w-6 sm:h-6 text-white cursor-pointer hover:text-green-400"
+                className="w-5 h-5 sm:w-6 sm:h-6 text-blue-200 cursor-pointer hover:text-green-400 transition-all duration-200 hover:scale-110"
                 onClick={() => {
                   if (callStarted) return;
                   setreceiver({ ...selectedConversation });
@@ -333,7 +333,7 @@ const MessageContainer = () => {
                 }}
               />
               <Video
-                className="w-5 h-5 sm:w-6 sm:h-6 text-white cursor-pointer hover:text-blue-400"
+                className="w-5 h-5 sm:w-6 sm:h-6 text-blue-200 cursor-pointer hover:text-cyan-400 transition-all duration-200 hover:scale-110"
                 onClick={() => {
                   if (callStarted) return;
                   setreceiver({ ...selectedConversation });
@@ -343,14 +343,14 @@ const MessageContainer = () => {
             </div>
             <button
               onClick={() => setSelectedConversation({})}
-              className="text-white hover:text-red-500 text-xl font-bold"
+              className="text-blue-200 hover:text-red-400 text-xl font-bold transition-colors duration-200 hover:scale-110"
             >
               &times;
             </button>
           </div>
 
           {typingUsers[selectedConversation?._id] && (
-            <p className="text-sm text-gray-400 px-4 py-1">✍️ Typing...</p>
+            <p className="text-sm text-blue-300 px-4 py-1 animate-pulse">✍️ Typing...</p>
           )}
 
           {incomingCall && !callAccepted && (
@@ -457,10 +457,10 @@ const MessageContainer = () => {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto px-2 py-1">
+          <div className="flex-1 overflow-y-auto px-2 py-1 pb-6 animate-fade-in delay-200">
             <Messages />
           </div>
-          <div className="p-2 border-t border-gray-600">
+          <div className="p-2 mt-4 border-t border-blue-300/20 bg-blue-900/20 backdrop-blur-sm animate-fade-in delay-300">
             <MessageInput />
           </div>
         </>
@@ -475,24 +475,26 @@ const NoChatSelected = () => {
   const { authUser } = useAuthContext();
   const navigate = useNavigate();
   return (
-    <div className="flex items-center justify-center w-full h-full">
-      <div className="px-4 text-center sm:text-lg md:text-xl text-gray-200 font-semibold flex flex-col items-center gap-2">
+    <div className="flex items-center justify-center w-full h-full bg-blue-900/10 backdrop-blur-sm">
+      <div className="px-4 text-center sm:text-lg md:text-xl text-blue-100 font-semibold flex flex-col items-center gap-4 animate-fade-in">
         {authUser?.profilePic && (
           <div
-            className="w-26 py-4 rounded-full cursor-pointer"
+            className="w-32 h-32 py-4 rounded-full cursor-pointer group animate-bounce-slow"
             onClick={() => navigate("/profile")}
             title="Go to Profile"
           >
             <img
               src={authUser.profilePic}
               alt="user avatar"
-              className="rounded-full"
+              className="rounded-full w-full h-full object-cover border-4 border-blue-400/50 group-hover:border-blue-400 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-blue-500/30"
             />
           </div>
         )}
-        <p>Welcome 👋 {authUser.fullName} ❄</p>
-        <p>Select a chat to start messaging</p>
-        <TiMessages className="text-3xl md:text-6xl text-center" />
+        <div className="animate-fade-in delay-200">
+          <p className="text-2xl mb-2">Welcome 👋 <span className="text-cyan-300">{authUser.fullName}</span> ❄</p>
+          <p className="text-blue-200 mb-4">Select a chat to start messaging</p>
+        </div>
+        <TiMessages className="text-4xl md:text-7xl text-center text-blue-300 animate-pulse" />
       </div>
     </div>
   );

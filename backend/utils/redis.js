@@ -76,7 +76,7 @@ export const initializeRedis = async () => {
   } catch (error) {
     console.error("Failed to initialize Redis:", error.message);
     console.warn(
-      "⚠ Redis is optional. Continuing without Redis adapter (single-server mode)."
+      " Redis is optional. Continuing without Redis adapter (single-server mode)."
     );
     return {
       pubClient: null,
