@@ -3,6 +3,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import mongoSanitize from "express-mongo-sanitize";
 
 import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
@@ -26,6 +27,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json()); // Parse incoming JSON requests
 app.use(cookieParser()); // Parse cookies from requests
+app.use(mongoSanitize()); // Sanitize user input to prevent NoSQL injection attacks
 
 // Enable CORS with credentials
 app.use(

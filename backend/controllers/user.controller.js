@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import mongoSanitize from "express-mongo-sanitize";
 
 export const getUsersForSidebar = async (req, res) => {
 	try {
@@ -17,7 +18,9 @@ export const getUsersForSidebar = async (req, res) => {
 export const addFriend = async (req, res) => {
 	try {
 		const userId = req.user._id;
-		const { friendId } = req.body;
+		// Sanitize input data
+		const sanitizedBody = mongoSanitize.sanitize(req.body);
+		const { friendId } = sanitizedBody;
 
 		// Check if already friends
 		const user = await User.findById(userId);
@@ -64,7 +67,9 @@ export const removeFriend = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { username, profilePic } = req.body;
+    // Sanitize input data
+    const sanitizedBody = mongoSanitize.sanitize(req.body);
+    const { username, profilePic } = sanitizedBody;
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,

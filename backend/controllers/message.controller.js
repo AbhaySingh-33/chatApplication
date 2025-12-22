@@ -2,10 +2,13 @@ import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import User from "../models/user.model.js";
+import mongoSanitize from "express-mongo-sanitize";
 
 export const sendMessage = async (req, res) => {
     try {
-        const { text, media, replyTo } = req.body;
+        // Sanitize input data
+        const sanitizedBody = mongoSanitize.sanitize(req.body);
+        const { text, media, replyTo } = sanitizedBody;
         const { id: receiverId } = req.params;
         const senderId = req.user._id;
 
@@ -98,7 +101,9 @@ export const getMessages = async (req, res) => {
 
 export const reactToMessage = async (req, res) => {
     try {
-        const { messageId, emoji } = req.body;
+        // Sanitize input data
+        const sanitizedBody = mongoSanitize.sanitize(req.body);
+        const { messageId, emoji } = sanitizedBody;
         const userId = req.user._id;
 
         // Check if the user already reacted

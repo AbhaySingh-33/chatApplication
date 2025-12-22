@@ -4,6 +4,7 @@ import generateTokenAndSetCookie from "../utils/generateToken.js";
 import multer from "multer";  // ye ek middleware hai jo parse karta hai file to uske file name se aur req.file (object me dal deta hai)
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import dotenv from "dotenv";  // ye env me strored variables ko process.env se acces krne me help karta hai
+import mongoSanitize from "express-mongo-sanitize";
 dotenv.config();
 
 import pkg from "cloudinary";
@@ -31,8 +32,9 @@ const upload = multer({ storage });     //ye ek multer ka middleware hai
 
 export const signup = async (req, res) => {
   try {
-    const { fullName, username, email, password, confirmPassword, gender } =
-      req.body;
+    // Sanitize input data
+    const sanitizedBody = mongoSanitize.sanitize(req.body);
+    const { fullName, username, email, password, confirmPassword, gender } = sanitizedBody;
 
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords don't match" });
@@ -126,7 +128,10 @@ export const verifyEmail = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    // Sanitize input data
+    const sanitizedBody = mongoSanitize.sanitize(req.body);
+    const { username, password } = sanitizedBody;
+    
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(400).json({ error: "Invalid username or password" });
