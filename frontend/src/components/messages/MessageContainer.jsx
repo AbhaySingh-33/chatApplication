@@ -29,6 +29,11 @@ const MessageContainer = () => {
   const [peer, setPeer] = useState(null);
   const [isVideoCall, setIsVideoCall] = useState(false);
   const [callStarted, setCallStarted] = useState(false);
+  
+  // Dragging logic state
+  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartCtx = useRef({ x: 0, y: 0 });
 
   const myVideo = useRef();
   const userVideo = useRef();
@@ -39,7 +44,37 @@ const MessageContainer = () => {
     return () => setSelectedConversation({});
   }, [setSelectedConversation]);
 
+  // Handle Dragging
+  useEffect(() => {
+      const handleMouseMove = (e) => {
+        if (isDragging) {
+          setPosition({
+            x: e.clientX - dragStartCtx.current.x,
+            y: e.clientY - dragStartCtx.current.y
+          });
+        }
+      };
+    
+      const handleMouseUp = () => {
+        setIsDragging(false);
+      };
+
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    } 
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
   const isEmptyObject = (obj) => !Object.keys(obj).length;
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    dragStartCtx.current = { x: e.clientX - position.x, y: e.clientY - position.y };
+  };
 
   const cleanupCall = () => {
     if (incomingCall && !callAccepted) {
@@ -379,81 +414,110 @@ const MessageContainer = () => {
           )}
 
           {(callAccepted || callStarted) && (
-            <div className="fixed top-4 left-4 z-40 bg-black bg-opacity-90 p-4 rounded-lg flex flex-col items-center gap-3">
-              {isVideoCall ? (
-                <div className="flex flex-col gap-3">
-                  <div className="relative">
-                    <video
-                      ref={myVideo}
-                      muted
-                      autoPlay
-                      playsInline
-                      className="w-48 h-36 rounded bg-gray-800 object-cover"
-                    />
-                    <span className="absolute bottom-2 left-2 text-white text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
-                      You
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <video
-                      ref={userVideo}
-                      autoPlay
-                      playsInline
-                      className="w-48 h-36 rounded bg-gray-800 object-cover"
-                    />
-                    <span className="absolute bottom-2 left-2 text-white text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
-                      {receiver.fullName}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-3">
-                  <audio
-                    ref={userAudio}
-                    autoPlay
-                    playsInline
-                    style={{ display: "none" }}
-                  />
-                  <div className="flex gap-4 items-center">
-                    <div className="text-center">
-                      <img
-                        src={authUser.profilePic}
-                        alt="You"
-                        className="w-20 h-20 rounded-full border-2 border-green-400"
-                      />
-                      <p className="text-white text-xs mt-1">You</p>
+            <div 
+                className="fixed z-50 bg-black/80 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl overflow-hidden flex flex-col items-center w-auto min-w-[320px] transition-shadow duration-300"
+                style={{ top: position.y, left: position.x, cursor: isDragging ? 'grabbing' : 'auto' }}
+            >
+                {/* Header / Drag Handle */}
+                <div 
+                    className="w-full bg-white/5 p-3 cursor-move flex justify-between items-center select-none border-b border-white/10 active:bg-white/10 transition-colors"
+                    onMouseDown={handleMouseDown}
+                >
+                    <div className="flex items-center gap-2">
+                        {isVideoCall ? <Video className="w-4 h-4 text-sky-400" /> : <Phone className="w-4 h-4 text-green-400" />}
+                        <span className="text-white/90 font-medium text-sm tracking-wide">
+                            {isVideoCall ? "Video Call" : "Voice Call"}
+                        </span>
                     </div>
-                    {receiver ? (
-                      <div className="text-center">
-                        <img
-                          src={receiver.profilePic}
-                          alt={receiver.fullName}
-                          className="w-20 h-20 rounded-full border-2 border-blue-400"
-                        />
-                        <p className="text-white text-xs mt-1">
-                          {receiver.fullName}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-white text-xs mt-1 italic">
-                          No active call
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-white text-sm">
-                    {callAccepted ? "📞 Connected" : "📞 Calling..."}
-                  </p>
+                     <div className="flex gap-1.5 px-2">
+                         <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    </div>
                 </div>
-              )}
 
-              <button
-                onClick={endCall}
-                className="bg-red-500 text-white px-6 py-2 mt-2 rounded hover:bg-red-600 transition-colors"
-              >
-                End Call
-              </button>
+                <div className="p-5 flex flex-col items-center gap-4 w-full">
+                  {/* Content (Video/Audio) */}
+                  {isVideoCall ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="relative group">
+                        <video
+                          ref={myVideo}
+                          muted
+                          autoPlay
+                          playsInline
+                          className="w-48 h-36 rounded-lg bg-gray-800 object-cover border border-white/10 shadow-lg"
+                        />
+                        <span className="absolute bottom-2 left-2 text-white/90 text-[10px] font-bold bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full">
+                          You
+                        </span>
+                      </div>
+                      <div className="relative group">
+                        <video
+                          ref={userVideo}
+                          autoPlay
+                          playsInline
+                          className="w-48 h-36 rounded-lg bg-gray-800 object-cover border border-white/10 shadow-lg"
+                        />
+                        <span className="absolute bottom-2 left-2 text-white/90 text-[10px] font-bold bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full">
+                          {receiver.fullName}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-4 w-full">
+                      <audio
+                        ref={userAudio}
+                        autoPlay
+                        playsInline
+                        style={{ display: "none" }}
+                      />
+                      <div className="flex gap-6 items-center justify-center p-2">
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="w-16 h-16 rounded-full p-0.5 bg-gradient-to-tr from-green-400 to-emerald-600 shadow-lg shadow-green-500/20">
+                             <img
+                               src={authUser.profilePic}
+                               alt="You"
+                               className="w-full h-full rounded-full object-cover border-2 border-black"
+                             />
+                          </div>
+                          <p className="text-white/80 text-[10px] uppercase font-bold tracking-wider">You</p>
+                        </div>
+                        
+                        <div className="h-px flex-1 bg-white/10 min-w-[20px]"></div>
+
+                        {receiver ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="w-16 h-16 rounded-full p-0.5 bg-gradient-to-tr from-blue-400 to-indigo-600 shadow-lg shadow-blue-500/20">
+                                <img
+                                  src={receiver.profilePic}
+                                  alt={receiver.fullName}
+                                  className="w-full h-full rounded-full object-cover border-2 border-black"
+                                />
+                            </div>
+                            <p className="text-white/80 text-[10px] uppercase font-bold tracking-wider">
+                              {receiver.fullName}
+                            </p>
+                          </div>
+                        ) : (
+                           <span className="text-white/50 text-xs italic">Connecting...</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/5">
+                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        <p className="text-white/90 text-xs font-medium">
+                            {callAccepted ? "Connected" : "Calling..."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={endCall}
+                    className="w-full bg-red-500/90 hover:bg-red-600 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition-all shadow-lg hover:shadow-red-500/20 active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <Phone className="w-4 h-4" /> End Call
+                  </button>
+                </div>
             </div>
           )}
 
