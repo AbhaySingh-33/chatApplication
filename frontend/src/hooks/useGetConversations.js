@@ -4,7 +4,7 @@ import useConversation from "../zustand/useConversation";
 
 const useGetConversations = () => {
   const [loading, setLoading] = useState(false);
-  const { conversations, setConversations } = useConversation();
+  const { conversations, setConversations, setUnreadCounts } = useConversation();
 
   useEffect(() => {
     const getConversations = async () => {
@@ -26,6 +26,15 @@ const useGetConversations = () => {
           throw new Error(data.error);
         }
         setConversations(data); // ✅ Store in Zustand
+
+        // ✅ Extract and set initial unread counts
+        const initialUnreadMap = data.reduce((acc, user) => {
+            if (user.unreadCount && user.unreadCount > 0) {
+                acc[user._id] = user.unreadCount;
+            }
+            return acc;
+        }, {});
+        setUnreadCounts(initialUnreadMap);
       } catch (error) {
         toast.error(error.message);
       } finally {
@@ -34,7 +43,7 @@ const useGetConversations = () => {
     };
 
     getConversations();
-  }, [conversations.length, setConversations]);
+  }, [conversations.length, setConversations, setUnreadCounts]);
 
   return { loading, conversations };
 };

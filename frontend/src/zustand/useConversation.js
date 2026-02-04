@@ -48,7 +48,10 @@ const useConversation = create((set) => ({
             },
         })),
 
-        setShowDelete: (messageId) => set({ showDelete: messageId }),
+    // ✅ Bulk set unread counts (fetched from backend)
+    setUnreadCounts: (unreadMessages) => set({ unreadMessages }),
+
+    setShowDelete: (messageId) => set({ showDelete: messageId }),
 
         typingUsers: {}, // ✅ Store typing users
         setTypingStatus: (userId, isTyping) =>

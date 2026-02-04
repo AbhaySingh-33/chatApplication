@@ -3,7 +3,6 @@ import { format, isValid } from "date-fns";
 import useGetMessages from "../../hooks/useGetMessages";
 import MessageSkeleton from "../skeletons/MessageSkeleton";
 import Message from "./Message";
-import useListenMessages from "../../hooks/useListenMessages";
 
 const groupMessagesByDate = (messages) => {
     const groupedMessages = {};
@@ -24,7 +23,7 @@ const groupMessagesByDate = (messages) => {
 
 const Messages = () => {
     const { messages = [], loading } = useGetMessages(); //  Ensure messages is an array
-    useListenMessages();
+    // useListenMessages moved to Home.jsx
     const lastMessageRef = useRef();
 
     const groupedMessages = groupMessagesByDate(messages); //  Group messages by date

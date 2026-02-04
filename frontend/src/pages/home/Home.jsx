@@ -5,6 +5,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import useListenFriendUpdates from "../../hooks/useListenFriendUpdates";
 import useGetMe from "../../hooks/useGetMe";
+import useListenMessages from "../../hooks/useListenMessages";
 
 const Home = () => {
   const { selectedConversation } = useConversation();
@@ -16,6 +17,9 @@ const Home = () => {
   
   // Listen for friend request acceptance to update UI in real-time
   useListenFriendUpdates();
+
+  // Listen for incoming messages (handles unread counts & message updates globally)
+  useListenMessages();
 
   return (
     <div className="flex items-center justify-center p-4 h-full">

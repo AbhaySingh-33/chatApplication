@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import mongoSanitize from "express-mongo-sanitize";
 import { getReceiverSocketId, io } from "../socket/socket.js";
+import Message from "../models/message.model.js";
 
 export const getUsersForSidebar = async (req, res) => {
 	try {
@@ -12,25 +13,25 @@ export const getUsersForSidebar = async (req, res) => {
         // Fetch current user with populated data to check status efficiently
         const currentUser = await User.findById(loggedInUserId).select("friends");
 
-        // Map users to include 'isFriend' and 'requestSent' status? 
-        // Actually, friendRequests are on the RECEIVER side.
-        // We need to check if we have sent a request to THEM.
-        // So we need to check if 'loggedInUserId' is in their 'friendRequests'.
-        
-        // This requires fetching users with their friendRequests array populated or checking it.
-        // Since we already fetched filteredUsers, let's include 'friendRequests' in the select (if it's not huge)
-        // or re-fetch. Default find returns all fields.
-        
-        // To be safe/efficient let's iterate.
-        const usersWithStatus = filteredUsers.map(user => {
+        // Use Promise.all to fetch unread message counts for each user concurrently
+        const usersWithStatus = await Promise.all(filteredUsers.map(async (user) => {
             const isFriend = currentUser.friends.some(id => id.toString() === user._id.toString());
             const requestSent = user.friendRequests.some(id => id.toString() === loggedInUserId.toString());
+            
+            // Count messages sent by this user to me that are NOT seen
+            const unreadCount = await Message.countDocuments({
+                senderId: user._id,
+                receiverId: loggedInUserId,
+                status: { $ne: "seen" }
+            });
+
             return {
                 ...user.toObject(),
                 isFriend,
-                requestSent
+                requestSent,
+                unreadCount // Add count to response
             };
-        });
+        }));
 
 		res.status(200).json(usersWithStatus);
 	} catch (error) {
