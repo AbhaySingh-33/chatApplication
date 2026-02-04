@@ -24,11 +24,11 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  padding: 0;
   min-width: 320px;
   min-height: 100vh;
-  
+  width: 100%;
+  height: 100%;
 }
 
 h1 {
@@ -248,4 +248,47 @@ button:focus-visible {
 .delay-1000 {
   animation-delay: 1s;
   animation-fill-mode: both;
+}
+/* Additional responsive utilities */
+@media (max-width: 640px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .animate-fade-in-down,
+  .animate-fade-in-left,
+  .animate-fade-in-right,
+  .animate-fade-in-up,
+  .animate-slide-up {
+    animation-duration: 0.6s;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* Ensure full viewport usage */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Responsive text scaling */
+@media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1200px) {
+  html {
+    font-size: 16px;
+  }
 }

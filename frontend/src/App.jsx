@@ -18,21 +18,21 @@ function App() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative h-[100vh] w-full bg-cover bg-center flex flex-col items-center justify-start p-4">
+    <div className="relative h-screen w-full bg-cover bg-center flex flex-col">
       {/* Dark Overlay */}
-      <div className="absolute inset-0  bg-opacity-60 z-0"></div>
+      <div className="absolute inset-0 bg-opacity-60 z-0"></div>
 
       {/* Header */}
-      <div className="relative z-10 mt-8 mb-6  px-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
+      <div className="relative z-10 py-4 px-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center bg-black/20 backdrop-blur-sm">
         <img
           src="/logo.png"
           alt="Chat Application Logo"
-          className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 cursor-pointer"
+          className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer"
           onClick={() => navigate("/")}
           title="Go to Home"
         />
         <h1
-          className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-wide text-blue-400 cursor-pointer"
+          className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-wide text-blue-400 cursor-pointer"
           onClick={() => navigate("/")}
           title="Go to Home"
         >
@@ -41,7 +41,7 @@ function App() {
       </div>
 
       {/* Routes */}
-      <div className="relative z-10 w-full max-w-md sm:max-w-2xl flex-grow">
+      <div className="relative z-10 flex-1 w-full">
         <Routes>
           <Route
             path="/"
@@ -85,14 +85,14 @@ function App() {
       </div>
 
       {/* Footer */}
-      <div className="relative z-10 w-full mt-auto text-center py-3 text-white text-sm">
+      <div className="relative z-10 w-full text-center py-2 text-white text-xs bg-black/20 backdrop-blur-sm">
         <p className="flex flex-wrap justify-center items-center gap-1 px-2">
           <span>🚀</span> Designed and developed by{" "}
           <a
             href="https://www.linkedin.com/in/abhay-singh-77b81833b/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-blue-400 hover:underline"
           >
             <span className="font-semibold">Abhay Kumar Singh</span>
           </a>

@@ -309,23 +309,23 @@ const MessageContainer = () => {
 
   return (
     <div
-      className="flex flex-col h-[70dvh] sm:h-[70vh] w-full sm:min-w-[450px] backdrop-filter backdrop-blur-lg"
+      className="flex flex-col h-full w-full min-w-0 bg-blue-900/10 backdrop-filter backdrop-blur-lg"
       onClick={() => setShowDelete(null)}
     >
       {isEmptyObject(selectedConversation) ? (
         <NoChatSelected />
       ) : (
         <>
-          <div className="bg-blue-900/40 backdrop-blur-sm px-4 py-3 flex justify-between items-center sticky top-0 z-20 border-b border-blue-300/20 animate-fade-in">
+          <div className="bg-blue-900/40 backdrop-blur-sm px-2 sm:px-4 py-2 sm:py-3 flex justify-between items-center sticky top-0 z-20 border-b border-blue-300/20 animate-fade-in">
             <div>
-              <span className="text-blue-200 text-sm">To:</span>{" "}
+              <span className="text-blue-200 text-xs sm:text-sm">To:</span>{" "}
               <span className="text-white font-bold text-sm sm:text-base">
                 {selectedConversation.fullName}
               </span>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               <Phone
-                className="w-5 h-5 sm:w-6 sm:h-6 text-blue-200 cursor-pointer hover:text-green-400 transition-all duration-200 hover:scale-110"
+                className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-200 cursor-pointer hover:text-green-400 transition-all duration-200 hover:scale-110"
                 onClick={() => {
                   if (callStarted) return;
                   setreceiver({ ...selectedConversation });
@@ -333,7 +333,7 @@ const MessageContainer = () => {
                 }}
               />
               <Video
-                className="w-5 h-5 sm:w-6 sm:h-6 text-blue-200 cursor-pointer hover:text-cyan-400 transition-all duration-200 hover:scale-110"
+                className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-200 cursor-pointer hover:text-cyan-400 transition-all duration-200 hover:scale-110"
                 onClick={() => {
                   if (callStarted) return;
                   setreceiver({ ...selectedConversation });
@@ -343,7 +343,7 @@ const MessageContainer = () => {
             </div>
             <button
               onClick={() => setSelectedConversation({})}
-              className="text-blue-200 hover:text-red-400 text-xl font-bold transition-colors duration-200 hover:scale-110"
+              className="text-blue-200 hover:text-red-400 text-lg sm:text-xl font-bold transition-colors duration-200 hover:scale-110"
             >
               &times;
             </button>
@@ -457,10 +457,10 @@ const MessageContainer = () => {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto px-2 py-1 pb-6 animate-fade-in delay-200">
+          <div className="flex-1 overflow-y-auto px-1 sm:px-2 py-1 animate-fade-in delay-200">
             <Messages />
           </div>
-          <div className="p-2 mt-4 border-t border-blue-300/20 bg-blue-900/20 backdrop-blur-sm animate-fade-in delay-300">
+          <div className="p-1 sm:p-2 border-t border-blue-300/20 bg-blue-900/20 backdrop-blur-sm animate-fade-in delay-300">
             <MessageInput />
           </div>
         </>
@@ -476,17 +476,17 @@ const NoChatSelected = () => {
   const navigate = useNavigate();
   return (
     <div className="flex items-center justify-center w-full h-full bg-blue-900/10 backdrop-blur-sm">
-      <div className="px-4 text-center sm:text-lg md:text-xl text-blue-100 font-semibold flex flex-col items-center gap-4 animate-fade-in">
+      <div className="px-4 text-center sm:text-lg md:text-xl text-blue-100 font-semibold flex flex-col items-center justify-center gap-6 animate-fade-in">
         {authUser?.profilePic && (
           <div
-            className="w-32 h-32 py-4 rounded-full cursor-pointer group animate-bounce-slow"
+            className="w-40 h-40 rounded-full cursor-pointer group animate-bounce-slow overflow-hidden border-4 border-blue-400/50 hover:border-blue-400 transition-all duration-300 hover:scale-110 shadow-lg shadow-blue-500/30"
             onClick={() => navigate("/profile")}
             title="Go to Profile"
           >
             <img
               src={authUser.profilePic}
               alt="user avatar"
-              className="rounded-full w-full h-full object-cover border-4 border-blue-400/50 group-hover:border-blue-400 transition-all duration-300 group-hover:scale-110 shadow-lg shadow-blue-500/30"
+              className="w-full h-full object-cover"
             />
           </div>
         )}

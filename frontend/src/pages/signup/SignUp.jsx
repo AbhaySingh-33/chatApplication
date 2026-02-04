@@ -51,28 +51,28 @@ const SignUp = () => {
     };
 
     return (
-        <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 px-4 py-8 relative overflow-hidden">
+        <div className="min-h-full flex justify-center items-center bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 px-4 sm:px-6 lg:px-8 py-4 sm:py-8 relative overflow-hidden">
             {/* Animated Background Elements */}
             <div className="absolute inset-0">
-                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-slate-500/10 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-slate-600/5 rounded-full blur-3xl animate-pulse delay-500"></div>
             </div>
 
-            <div className="w-full max-w-md relative z-10">
+            <div className="w-full max-w-md lg:max-w-lg relative z-10">
                 {/* Logo/Brand Section */}
-                <div className="text-center mb-8 animate-fade-in-down">
+                <div className="text-center mb-6 sm:mb-8 animate-fade-in-down">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full mb-4 animate-bounce-slow shadow-lg shadow-blue-500/50">
                         <svg className="w-8 h-8 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
                     </div>
-                    <h1 className="text-4xl font-bold text-white mb-2 animate-fade-in">Join ChatApp</h1>
-                    <p className="text-blue-200 animate-fade-in delay-200">Create your account to start chatting</p>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 animate-fade-in">Join ChatApp</h1>
+                    <p className="text-blue-200 text-sm sm:text-base animate-fade-in delay-200">Create your account to start chatting</p>
                 </div>
 
                 {/* Signup Form */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-blue-300/20 animate-slide-up hover:shadow-blue-500/20 transition-all duration-500">
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 sm:p-8 shadow-2xl border border-blue-300/20 animate-slide-up hover:shadow-blue-500/20 transition-all duration-500">
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="grid grid-cols-2 gap-4 animate-fade-in-left delay-300">
                             <div className="space-y-2">

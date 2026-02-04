@@ -2,10 +2,10 @@
 @plugin "daisyui";
 
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 .logo {
@@ -55,20 +55,20 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  height: 100vh;
+  overflow-x: hidden;
 }
 
 #app {
   width: 100%;
-  height: 100%;
-  display: flex; /* Or grid, depending on layout */
+  height: 100vh;
+  display: flex;
   flex-direction: column;
 }
 
 .container {
   display: flex;
-  flex-direction: column; /* Adjust based on layout */
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
