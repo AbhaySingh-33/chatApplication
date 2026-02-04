@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuthContext } from "../../context/AuthContext";
 import useLogout from "../../hooks/useLogout";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import MessageContainer from "../../components/messages/MessageContainer";
 import useConversation from "../../zustand/useConversation";
@@ -8,6 +9,7 @@ import useConversation from "../../zustand/useConversation";
 const Profile = () => {
   const { authUser, socket, setAuthUser } = useAuthContext();
   const { logout } = useLogout();
+  const navigate = useNavigate();
   const { selectedConversation, setSelectedConversation } = useConversation();
   const [friends, setFriends] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -87,19 +89,30 @@ const Profile = () => {
   }, [socket]);
 
   return (
-    <div className="flex items-center justify-center h-screen p-2 sm:p-0">
-      <div className="flex w-[95%] sm:w-full max-w-5xl h-[80vh] sm:h-[450px] md:h-[550px] lg:h-[600px] xl:h-[650px] rounded-lg sm:rounded-2xl overflow-hidden shadow-2xl backdrop-blur-lg">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-2 sm:p-4">
+      {/* Professional Back Button */}
+      <button
+        onClick={() => navigate('/')}
+        className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl group"
+      >
+        <svg className="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span className="font-medium">Back to Home</span>
+      </button>
+      
+      <div className="flex w-[95%] sm:w-full max-w-5xl h-[80vh] sm:h-[450px] md:h-[550px] lg:h-[600px] xl:h-[650px] rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl bg-white/5 border border-white/10">
         {/* Sidebar */}
         <div
-          className={`w-full sm:w-[35%] bg-white/90 flex flex-col border-r border-gray-200
+          className={`w-full sm:w-[35%] bg-white/5 backdrop-blur-sm flex flex-col border-r border-white/10
             ${selectedConversation?._id ? "hidden" : "flex"} sm:flex`}
         >
           {/* Profile Section - Fixed */}
-          <div className="flex flex-col items-center p-1.5 sm:p-6 border-b border-gray-200">
+          <div className="flex flex-col items-center p-1.5 sm:p-6 border-b border-white/10 bg-white/5">
             <img
               src={isEditing ? editProfilePic : authUser.profilePic}
               alt="user avatar"
-              className="w-12 h-12 sm:w-24 sm:h-24 rounded-full border-4 border-blue-500 shadow-md"
+              className="w-12 h-12 sm:w-24 sm:h-24 rounded-full border-4 border-gradient-to-r from-blue-500 to-purple-500 shadow-xl ring-4 ring-blue-100/50"
             />
 
             {isEditing ? (
@@ -123,7 +136,7 @@ const Profile = () => {
                 <div className="flex gap-2 mt-2 sm:mt-3">
                   <button
                     onClick={handleUpdateProfile}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 cursor-pointer"
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-purple-700 cursor-pointer shadow-lg transition-all duration-300"
                   >
                     Save
                   </button>
@@ -133,7 +146,7 @@ const Profile = () => {
                       setEditUsername(authUser.username);
                       setEditProfilePic(authUser.profilePic);
                     }}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-900 cursor-pointer"
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white text-sm rounded-lg hover:from-gray-700 hover:to-gray-800 cursor-pointer shadow-lg transition-all duration-300"
                   >
                     Cancel
                   </button>
@@ -146,7 +159,7 @@ const Profile = () => {
                 </h3>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="mt-1 sm:mt-2 px-2 py-0.5 sm:px-4 bg-blue-500 text-white text-xs sm:text-sm rounded hover:bg-blue-600 cursor-pointer"
+                  className="mt-1 sm:mt-2 px-2 py-0.5 sm:px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs sm:text-sm rounded-lg hover:from-blue-600 hover:to-purple-700 cursor-pointer shadow-lg transition-all duration-300"
                 >
                   Edit Profile
                 </button>
@@ -155,7 +168,7 @@ const Profile = () => {
 
             <button
               onClick={logout}
-              className="mt-1 sm:mt-4 px-2 py-1 sm:px-4 sm:py-2 bg-red-500 text-white text-xs sm:text-sm rounded-md hover:bg-red-600 w-full cursor-pointer"
+              className="mt-1 sm:mt-4 px-2 py-1 sm:px-4 sm:py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs sm:text-sm rounded-lg hover:from-red-600 hover:to-pink-700 w-full cursor-pointer shadow-lg transition-all duration-300"
             >
               Log Out
             </button>
@@ -163,17 +176,17 @@ const Profile = () => {
 
           {/* Friends List - Scrollable */}
           <div className="flex-1 overflow-y-auto p-1.5 sm:p-6">
-            <h2 className="text-sm sm:text-lg font-bold mb-1 sm:mb-3 text-gray-700">
+            <h2 className="text-sm sm:text-lg font-bold mb-1 sm:mb-3 text-gray-800 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Your Friends
             </h2>
             <ul className="space-y-1 sm:space-y-2 pr-1 sm:pr-2">
               {friends.map((friend) => (
                 <li
                   key={friend._id}
-                  className={`rounded-lg p-1.5 sm:p-3 shadow-sm transition cursor-pointer ${
+                  className={`rounded-xl p-1.5 sm:p-3 shadow-lg transition-all duration-300 cursor-pointer border border-white/20 ${
                     selectedConversation?._id === friend._id
-                      ? "bg-blue-100"
-                      : "bg-white hover:bg-gray-50"
+                      ? "bg-gradient-to-r from-blue-100 to-purple-100 shadow-xl"
+                      : "bg-white/80 hover:bg-white/90 hover:shadow-xl hover:scale-[1.02]"
                   }`}
                   onClick={() => setSelectedConversation(friend)}
                 >
@@ -182,7 +195,7 @@ const Profile = () => {
                       <img
                         src={friend.profilePic}
                         alt={friend.username}
-                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-sm"
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-lg ring-2 ring-blue-200/50"
                       />
                       <span className="text-gray-800 font-medium text-sm sm:text-base truncate">
                         {friend.username}
@@ -193,7 +206,7 @@ const Profile = () => {
                         e.stopPropagation();
                         handleRemoveFriend(friend._id);
                       }}
-                      className="text-red-500 hover:text-red-700 cursor-pointer text-sm sm:text-base"
+                      className="text-red-500 hover:text-red-700 cursor-pointer text-sm sm:text-base hover:bg-red-50 rounded-full p-1 transition-all duration-300"
                     >
                       ✕
                     </button>
@@ -208,7 +221,7 @@ const Profile = () => {
         <div
           className={`${
             selectedConversation?._id ? "flex" : "hidden sm:flex"
-          } flex-1 flex flex-col`}
+          } flex-1 flex flex-col bg-white/5 backdrop-blur-sm`}
         >
           <MessageContainer />
         </div>
