@@ -3,11 +3,19 @@ import Sidebar from "../../components/sidebar/Sidebar";
 import useConversation from "../../zustand/useConversation";
 import { useAuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import useListenFriendUpdates from "../../hooks/useListenFriendUpdates";
+import useGetMe from "../../hooks/useGetMe";
 
 const Home = () => {
   const { selectedConversation } = useConversation();
   const { authUser } = useAuthContext();
   const navigate = useNavigate();
+
+  // Sync fresh user data (friends list) on mount to correct loose states
+  useGetMe();
+  
+  // Listen for friend request acceptance to update UI in real-time
+  useListenFriendUpdates();
 
   return (
     <div className="flex items-center justify-center p-4 h-full">

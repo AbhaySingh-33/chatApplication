@@ -1,17 +1,56 @@
 import Conversations from "./Conversations";
 import LogoutButton from "./LogoutButton";
 import SearchInput from "./SearchInput";
+import { useState, useEffect } from "react";
+import { IoNotifications } from "react-icons/io5";
+import Notifications from "./Notifications";
+import { useSocketContext } from "../../context/SocketContext";
 
 const Sidebar = () => {
+    const [showNotifications, setShowNotifications] = useState(false);
+    const { socket } = useSocketContext();
+    const [hasNewNotification, setHasNewNotification] = useState(false);
+
+    useEffect(() => {
+        if (socket) {
+            socket.on("newFriendRequest", () => {
+                setHasNewNotification(true);
+            });
+        }
+        return () => socket?.off("newFriendRequest");
+    }, [socket]);
+
 	return (
-		<div className='border-r-0 sm:border-r border-white/10 p-2 flex flex-col h-full overflow-hidden bg-white/5 backdrop-blur-sm'>
-			<div className="animate-fade-in delay-200">
-				<SearchInput />
-			</div>
-			<div className='divider px-3 border-white/20'></div>
-			<div className="animate-fade-in delay-300 flex-1 overflow-hidden">
-				<Conversations />
-			</div>
+		<div className='border-r-0 sm:border-r border-white/10 p-2 flex flex-col h-full overflow-hidden bg-white/5 backdrop-blur-sm relative'>
+            <div className="flex items-center justify-between gap-2 px-1">
+                <div className="flex-1">
+                    <SearchInput />
+                </div>
+                <div 
+                    className={`relative cursor-pointer p-2 rounded-full transition-all duration-300 ${showNotifications ? 'bg-blue-600' : 'hover:bg-white/10'}`} 
+                    onClick={() => {
+                        setShowNotifications(!showNotifications);
+                        if (!showNotifications) setHasNewNotification(false);
+                    }}
+                    title="Friend Requests"
+                >
+                    <IoNotifications className="text-white text-2xl" />
+                    {hasNewNotification && <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse ring-2 ring-gray-800"></span>}
+                </div>
+            </div>
+			
+			<div className='divider px-3 border-white/20 my-2'></div>
+			
+            {showNotifications ? (
+                <div className="animate-fade-in delay-100 flex-1 overflow-hidden">
+                    <Notifications />
+                </div>
+            ) : (
+                <div className="animate-fade-in delay-100 flex-1 overflow-hidden">
+                    <Conversations />
+                </div>
+            )}
+			
 			<div className="mt-auto pt-2 animate-fade-in delay-400">
 				<LogoutButton />
 			</div>

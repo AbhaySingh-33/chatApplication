@@ -155,6 +155,7 @@ export const login = async (req, res) => {
       fullName: user.fullName,
       username: user.username,
       profilePic: user.profilePic,
+      friends: user.friends, // ✅ Include friends in login response
     });
   } catch (error) {
     console.error("Error in login controller:", error);
@@ -170,6 +171,16 @@ export const logout = (req, res) => {
     console.error("Error in logout controller:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+};
+
+export const getMe = async (req, res) => {
+	try {
+		const user = await User.findById(req.user._id).select("-password");
+		res.status(200).json(user);
+	} catch (error) {
+		console.error("Error in getMe controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
 };
 
 export const uploadProfilePicture = upload.single("profilePic");

@@ -1,9 +1,8 @@
 import { useSocketContext } from "../../context/SocketContext";
 import useConversation from "../../zustand/useConversation";
 import { useAuthContext } from "../../context/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useState } from "react";
 
 const Conversation = ({ conversation, lastIdx, emoji }) => {
   const {
@@ -11,70 +10,104 @@ const Conversation = ({ conversation, lastIdx, emoji }) => {
     setSelectedConversation,
     unreadMessages,
     resetUnreadMessages,
-    setMessages,
   } = useConversation();
   const { onlineUsers, socket } = useSocketContext();
-  const { authUser } = useAuthContext();
+  const { authUser, setAuthUser } = useAuthContext();
+  
+  // Initialize requestSent from backend data
+  const [requestSent, setRequestSent] = useState(conversation.requestSent || false);
+  
+  // Initialize isFriend from backend data. 
+  // We use state so we can update it locally if we discover we are friends (e.g. "Already friends" error)
+  const [isFriend, setIsFriend] = useState(conversation.isFriend);
 
-    const [isFriend, setIsFriend] = useState(false);
-
+  // Sync state if prop changes OR if authUser friends list updates (e.g. accepted in Notifications)
+  useEffect(() => {
+    // Check if truly friends via AuthContext (most up-to-date source for accepted requests)
+    const isFriendInContext = authUser.friends?.some(friend => {
+        const id = typeof friend === 'object' ? friend._id : friend;
+        return id?.toString() === conversation._id?.toString();
+    });
+    
+    // STRICTLY trust AuthContext for friendship status to handle both additions and removals dynamically
+    setIsFriend(!!isFriendInContext);
+    
+    // For requestSent, we still rely on the prop snapshot or could track it locally if we had a "sentRequests" context
+    setRequestSent(conversation.requestSent || false);
+  }, [conversation.isFriend, conversation.requestSent, authUser.friends, conversation._id]);
+  
   const isSelected = selectedConversation?._id === conversation._id;
   const isOnline = onlineUsers.includes(conversation._id);
   const unreadCount = unreadMessages[conversation._id] || 0;
 
   const handleSelectConversation = () => {
+    // Restriction Logic
+    if (!isFriend) {
+        toast.error("Add user to friends to start chatting");
+        return; 
+    }
     setSelectedConversation(conversation);
-    resetUnreadMessages(conversation._id); // Reset unread count when opening chat
-    console.log(conversation.profilePic);
-
-    //  Emit event to mark all messages as seen
-    socket.emit("allmessageSeen", {
-      receiverId: authUser._id,
-      senderId: conversation._id,
-    });
+    resetUnreadMessages(conversation._id);
+    
+    if (socket) {
+        socket.emit("allmessageSeen", {
+            receiverId: authUser._id,
+            senderId: conversation._id,
+        });
+    }
   };
 
-  const isEmptyObject = (obj) => !Object.keys(obj).length;
-
-  const handleAddFriend = async (e) => {
-    e.stopPropagation(); // prevent selecting conversation on button click
+  const handleSendRequest = async (e) => {
+    e.stopPropagation(); // prevent triggering parent onClick
+    
+    // Optimistic UI update
+    if(requestSent) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/friends/add`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/friends/send-request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authUser.token}`,
         },
-        body: JSON.stringify({ friendId: conversation._id }),
+        body: JSON.stringify({ receiverId: conversation._id }),
         credentials: "include",
       });
 
-      if (res.ok) {
-        setIsFriend(true);
-        toast.success("Friend added successfully!");
-        socket.emit("friend:added", {
-          from: authUser._id,});
-      } else {
-        const data = await res.json();
-       toast.error(data.error || "Failed to add friend");
+      const data = await res.json();
+      
+      if (data.error) {
+          if (data.error === "Already friends") {
+              toast.success("You are already friends!");
+              
+              // Update local state to reflect friendship immediately
+              setIsFriend(true); 
+              
+              // Update local auth context as backup
+              const updatedUser = { ...authUser, friends: [...(authUser.friends || []), conversation._id] };
+              localStorage.setItem("chat-user", JSON.stringify(updatedUser)); 
+              setAuthUser(updatedUser);
+              return;
+          }
+          if (data.error === "Request already sent") {
+              toast.error("Request already sent");
+              setRequestSent(true);
+              return;
+          }
+          throw new Error(data.error);
       }
+
+      toast.success("Friend request sent!");
+      setRequestSent(true);
     } catch (error) {
-      console.error("Add friend error:", error);
+      toast.error(error.message || "Failed to send request");
     }
   };
-
-  useEffect(() => {
-    if (!selectedConversation) {
-      setMessages([]);
-    }
-  }, [selectedConversation]);
 
   return (
     <>
       <div
-        className={`flex gap-2 items-center hover:bg-sky-500 rounded p-1.5 py-1 cursor-pointer 
-                ${isSelected ? "bg-sky-500" : ""}`}
+        className={`flex gap-2 items-center hover:bg-sky-500 rounded p-1.5 py-1 cursor-pointer transition-all duration-200
+                ${isSelected ? "bg-sky-500" : ""} ${!isFriend && !isSelected ? "opacity-75 hover:opacity-100" : ""}`}
         onClick={handleSelectConversation}
       >
         {/* User Avatar */}
@@ -88,23 +121,32 @@ const Conversation = ({ conversation, lastIdx, emoji }) => {
         <div className="flex flex-col flex-1">
           <div className="flex gap-3 justify-between items-center">
             <p className="font-bold text-gray-200">{conversation.username}</p>
-            <button
-              onClick={handleAddFriend}
-              disabled={isFriend}
-              className="text-white font-bold"
-              title={isFriend ? "Already a friend" : "Add Friend"}
-            >
-              {isFriend ? "✅" : "+"}
-            </button>
-
-            {/*  Show Unread Message Count */}
-            {unreadCount > 0 && (
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                {unreadCount}
-              </span>
+            
+            {/* "Add" Button if not friend */}
+            {!isFriend ? (
+               <button 
+                onClick={handleSendRequest}
+                className={`text-xs px-3 py-1.5 rounded-lg flex items-center justify-center font-semibold shadow-md transition-all duration-300
+                    ${requestSent 
+                        ? "bg-gray-600 text-gray-300 cursor-not-allowed" 
+                        : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white hover:scale-105 active:scale-95"}`}
+                disabled={requestSent}
+               >
+                   {requestSent ? "Sent" : "Add +"}
+               </button>
+            ) : (
+                // Show emoji only if friends
+                <span className='text-xl'>{emoji}</span>
             )}
           </div>
         </div>
+        
+        {/* Unread count only valid if friend */}
+        {isFriend && unreadCount > 0 && (
+           <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full ml-1">
+             {unreadCount}
+           </span>
+         )}
       </div>
 
       {!lastIdx && <div className="divider my-0 py-0 h-1" />}

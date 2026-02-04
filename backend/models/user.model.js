@@ -37,6 +37,7 @@ const userSchema = new mongoose.Schema(
 			default: false,
 		},
 		friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+		friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Added friendRequests field
 		
 		 resetToken: String, 
   		 resetTokenExpiry: Date, 

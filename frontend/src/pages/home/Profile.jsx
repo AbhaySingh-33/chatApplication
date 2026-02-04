@@ -72,6 +72,15 @@ const Profile = () => {
         { withCredentials: true }
       );
       setFriends((prev) => prev.filter((f) => f._id !== friendId));
+      
+      // ✅ Update Global Auth Context
+      const updatedFriends = authUser.friends.filter(id => 
+          (typeof id === 'object' ? id._id : id) !== friendId
+      );
+      const updatedUser = { ...authUser, friends: updatedFriends };
+      localStorage.setItem("chat-user", JSON.stringify(updatedUser));
+      setAuthUser(updatedUser);
+
       if (selectedConversation?._id === friendId) {
         setSelectedConversation(null);
       }
