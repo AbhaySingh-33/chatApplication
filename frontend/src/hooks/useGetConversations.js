@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import useConversation from "../zustand/useConversation";
 
 const useGetConversations = () => {
   const [loading, setLoading] = useState(false);
-  const [conversations, setConversations] = useState([]);
+  const { conversations, setConversations } = useConversation();
 
   useEffect(() => {
     const getConversations = async () => {
+      // ✅ If conversations already cached in Zustand, skip fetching
+      if (conversations.length > 0) {
+        return;
+      }
+
       setLoading(true);
       try {
         const res = await fetch(
@@ -19,7 +25,7 @@ const useGetConversations = () => {
         if (data.error) {
           throw new Error(data.error);
         }
-        setConversations(data);
+        setConversations(data); // ✅ Store in Zustand
       } catch (error) {
         toast.error(error.message);
       } finally {
@@ -28,7 +34,7 @@ const useGetConversations = () => {
     };
 
     getConversations();
-  }, []);
+  }, [conversations.length, setConversations]);
 
   return { loading, conversations };
 };

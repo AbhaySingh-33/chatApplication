@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useAuthContext } from "../context/AuthContext";
 import toast from "react-hot-toast";
+import useConversation from "../zustand/useConversation";
 
 const useLogout = () => {
 	const [loading, setLoading] = useState(false);
 	const { setAuthUser } = useAuthContext();
+	const { clearConversations } = useConversation();
 
 	const logout = async () => {
 		setLoading(true);
@@ -21,6 +23,7 @@ const useLogout = () => {
 
 			localStorage.removeItem("chat-user");
 			setAuthUser(null);
+			clearConversations(); // ✅ Clear cached conversations on logout
 		} catch (error) {
 			toast.error(error.message);
 		} finally {

@@ -5,6 +5,9 @@ const useConversation = create((set) => ({
     selectedConversation: {}, // ✅ Set default as an empty object instead of `null`
     unreadMessages: {},
     showDelete: null,
+    conversations: [], // ✅ Cache all conversations/users
+    setConversations: (conversations) => set({ conversations }),
+    clearConversations: () => set({ conversations: [] }), // ✅ Clear cache on logout
 
     receiver: null,
     setreceiver: (receiver) => set({ receiver }),
