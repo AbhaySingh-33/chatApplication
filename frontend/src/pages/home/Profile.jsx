@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuthContext } from "../../context/AuthContext";
 import useLogout from "../../hooks/useLogout";
 import { useNavigate } from "react-router-dom";
@@ -10,11 +10,27 @@ const Profile = () => {
   const { authUser, socket, setAuthUser } = useAuthContext();
   const { logout } = useLogout();
   const navigate = useNavigate();
-  const { selectedConversation, setSelectedConversation } = useConversation();
-  const [friends, setFriends] = useState([]);
+  const { selectedConversation, setSelectedConversation, friends, setFriends } = useConversation();
   const [isEditing, setIsEditing] = useState(false);
   const [editUsername, setEditUsername] = useState(authUser.username);
   const [editProfilePic, setEditProfilePic] = useState(authUser.profilePic);
+
+  const fetchFriends = useCallback(async (force = false) => {
+    // Cache Check: If friends exist in Zustand and invalidation isn't forced, skip API
+    if (friends.length > 0 && !force) {
+        return;
+    }
+
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/friends/list`,
+        { withCredentials: true }
+      );
+      setFriends(res.data);
+    } catch (err) {
+      console.error("Error fetching friends:", err);
+    }
+  }, [friends.length, setFriends]);
 
   const handleUpdateProfile = async () => {
     try {
@@ -53,25 +69,15 @@ const Profile = () => {
     return json.secure_url;
   };
 
-  const fetchFriends = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/friends/list`,
-        { withCredentials: true }
-      );
-      setFriends(res.data);
-    } catch (err) {
-      console.error("Error fetching friends:", err);
-    }
-  };
-
   const handleRemoveFriend = async (friendId) => {
     try {
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/api/friends/${friendId}`,
         { withCredentials: true }
       );
-      setFriends((prev) => prev.filter((f) => f._id !== friendId));
+      
+      // ✅ Invalidate cache to force re-fetch
+      fetchFriends(true);
       
       // ✅ Update Global Auth Context
       const updatedFriends = authUser.friends.filter(id => 
@@ -92,10 +98,18 @@ const Profile = () => {
   useEffect(() => {
     fetchFriends();
     if (socket) {
-      socket.on("friend:added", () => fetchFriends());
+      // ✅ Force refresh when:
+      // 1. I accept a request (handled via cache invalidation / state update elsewhere usually, but safety net)
+      // 2. Someone accepts MY request (backend emits 'friendRequestAccepted')
+      // 3. Someone removes me (backend emits 'friendRemoved')
+      socket.on("friendRequestAccepted", () => fetchFriends(true));
+      socket.on("friendRemoved", () => fetchFriends(true));
     }
-    return () => socket?.off("friend:added");
-  }, [socket]);
+    return () => {
+        socket?.off("friendRequestAccepted");
+        socket?.off("friendRemoved");
+    };
+  }, [socket, fetchFriends]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-2 sm:p-4">

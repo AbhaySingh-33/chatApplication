@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useSocketContext } from "../../context/SocketContext";
 import { useAuthContext } from "../../context/AuthContext";
+import useConversation from "../../zustand/useConversation";
 
 const Notifications = () => {
     const [requests, setRequests] = useState([]);
     const { socket } = useSocketContext();
     const { authUser, setAuthUser } = useAuthContext();
+    const { friends, setFriends } = useConversation();
 
     useEffect(() => {
         const fetchNotifications = async () => {
@@ -45,12 +47,23 @@ const Notifications = () => {
             if (data.error) throw new Error(data.error);
 
             toast.success("Friend request accepted");
+            const acceptedRequest = requests.find((r) => r._id === senderId);
             setRequests(requests.filter((r) => r._id !== senderId));
             
             // ✅ Update local Auth Context to include new friend immediately
             const updatedUser = { ...authUser, friends: [...(authUser.friends || []), senderId] };
             localStorage.setItem("chat-user", JSON.stringify(updatedUser));
             setAuthUser(updatedUser);
+
+            // ✅ Update Zustand Store (Real-time Profile Update)
+            if (acceptedRequest && friends.length > 0) {
+                 setFriends([...friends, acceptedRequest]);
+            } else {
+                 // If friends list wasn't loaded yet, it will be fetched when Profile opens
+                 // but invalidating is safer if we implemented a force-refresh flag, 
+                 // simply clearing it also works to force refetch
+                 setFriends([]); 
+            }
 
         } catch (error) {
             toast.error(error.message);

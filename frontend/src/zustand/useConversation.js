@@ -9,6 +9,9 @@ const useConversation = create((set) => ({
     setConversations: (conversations) => set({ conversations }),
     clearConversations: () => set({ conversations: [] }), // ✅ Clear cache on logout
 
+    friends: [], // ✅ Cache friends list
+    setFriends: (friends) => set({ friends }),
+
     receiver: null,
     setreceiver: (receiver) => set({ receiver }),
 
