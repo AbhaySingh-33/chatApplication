@@ -9,11 +9,10 @@ const useAIChat = () => {
   const sendAIMessage = async ({ text }) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/ai-chat/send", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai-chat/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // include credentials is handled by vite/axios proxy usually, or handled globally
-        // but since we are using relative path proxy in development, it's fine.
+        credentials: "include",
         body: JSON.stringify({ text }),
       });
 
@@ -32,7 +31,9 @@ const useAIChat = () => {
 
   const getAIConversation = async () => {
     try {
-      const res = await fetch("/api/ai-chat/conversation");
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai-chat/conversation`, {
+        credentials: "include",
+      });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       return data;
@@ -45,7 +46,9 @@ const useAIChat = () => {
   const getAIMessages = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/ai-chat/messages");
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai-chat/messages`, {
+        credentials: "include",
+      });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setMessages(data);
