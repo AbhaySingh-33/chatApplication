@@ -13,6 +13,7 @@ const io = new Server(server, {
     origin: [
       process.env.FRONTEND_URL,
       "http://localhost:5173",
+      "https://chat-application-bice-ten.vercel.app",
       "https://chat-application-927d5by2g-abhay-singhs-projects-5c06d5f1.vercel.app",
     ].filter(Boolean),
     methods: ["GET", "POST"],

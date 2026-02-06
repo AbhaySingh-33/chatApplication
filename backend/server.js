@@ -46,6 +46,7 @@ app.use(
 	cors({
 		origin: [
 			process.env.FRONTEND_URL,
+			"https://chat-application-bice-ten.vercel.app",
 		].filter(Boolean), // Allow mapped origins
 		credentials: true,
 	})
