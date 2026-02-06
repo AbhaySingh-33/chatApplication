@@ -1,6 +1,11 @@
 import jwt from "jsonwebtoken";
 
 const generateTokenAndSetCookie = (userId, res) => {
+	if (!process.env.JWT_SECRET) {
+		console.error("CRITICAL ERROR: JWT_SECRET is not defined in environment variables.");
+		throw new Error("Server misconfiguration: Missing JWT_SECRET");
+	}
+
 	const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
 		expiresIn: "15d",
 	});

@@ -1,4 +1,5 @@
 import path from "path";
+import fs from "fs";
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -23,6 +24,16 @@ const __dirname = path.dirname(__filename); // For resolving directory paths
 dotenv.config();
 console.log("Cloudinary Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
 
+// Validate required environment variables
+const requiredEnvVars = ["MONGO_DB_URI", "JWT_SECRET"];
+const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
+if (missingEnvVars.length > 0) {
+  console.error(`CRITICAL ERROR: Missing required environment variables: ${missingEnvVars.join(", ")}`);
+  console.error("Please add these to your .env file or deployment environment variables.");
+  // process.exit(1); // Optional: Exit process if critical variables are missing
+}
+
+
 
 const PORT = process.env.PORT || 5000;
 
@@ -33,7 +44,9 @@ app.use(mongoSanitize()); // Sanitize user input to prevent NoSQL injection atta
 // Enable CORS with credentials
 app.use(
 	cors({
-		origin: process.env.FRONTEND_URL || "http://localhost:5173", // Change this to your frontend's deployed URL for production
+		origin: [
+			process.env.FRONTEND_URL,
+		].filter(Boolean), // Allow mapped origins
 		credentials: true,
 	})
 );
@@ -52,7 +65,12 @@ app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
 // Handle all other routes and serve the frontend app
 app.get("*", (req, res) => {
-	res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+	const frontendIndex = path.join(__dirname, "../frontend", "dist", "index.html");
+	if (fs.existsSync(frontendIndex)) {
+		res.sendFile(frontendIndex);
+	} else {
+		res.status(404).json({ message: "Frontend files not found. Ensure the frontend is built and exists in ../frontend/dist, or use the API routes." });
+	}
 });
 
 // Ensure MongoDB is connected before starting the server
