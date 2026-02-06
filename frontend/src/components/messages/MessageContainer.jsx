@@ -357,7 +357,12 @@ const MessageContainer = () => {
               <span className="text-white font-bold text-sm sm:text-base">
                 {selectedConversation.fullName}
               </span>
+              {selectedConversation?.isAI && (
+                <span className="ml-2 text-xs text-sky-400 font-semibold border border-sky-400 px-1 rounded">AI</span>
+              )}
             </div>
+            
+            {!selectedConversation?.isAI ? (
             <div className="flex gap-2 sm:gap-3">
               <Phone
                 className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-200 cursor-pointer hover:text-green-400 transition-all duration-200 hover:scale-110"
@@ -376,6 +381,8 @@ const MessageContainer = () => {
                 }}
               />
             </div>
+            ) : null}
+
             <button
               onClick={() => setSelectedConversation({})}
               className="text-blue-200 hover:text-red-400 text-lg sm:text-xl font-bold transition-colors duration-200 hover:scale-110"

@@ -13,6 +13,8 @@ const useListenMessages = () => {
                     newMessage.shouldShake = true;
                     const sound = new Audio(notificationSound);
                     sound.play();
+                    
+                    if (!filteredUser) return; // Safeguard against undefined user
         
                     if (selectedConversation._id === filteredUser._id) {
                         setMessages([...messages, newMessage]);
@@ -101,6 +103,8 @@ const useListenMessages = () => {
     }, [socket, setMessages, selectedConversation]);
 
     useEffect(() => {
+        if (!socket) return;
+
         // Listen to the "Message" event
         socket.on("Message", (senderId) => {
           console.log(`Message received from: ${senderId}`);

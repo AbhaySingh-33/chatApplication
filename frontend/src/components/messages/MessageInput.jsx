@@ -4,6 +4,7 @@ import EmojiPicker from "emoji-picker-react";
 import useSendMessage from "../../hooks/useSendMessage";
 import { useSocketContext } from "../../context/SocketContext";
 import useConversation from "../../zustand/useConversation";
+import useAIChat from "../../hooks/useAIChat";
 
 const MessageInput = () => {
 	const [message, setMessage] = useState("");
@@ -11,6 +12,7 @@ const MessageInput = () => {
     const [preview, setPreview] = useState(null);
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 	const { loading, sendMessage } = useSendMessage();
+    const { sendAIMessage, loading: aiLoading } = useAIChat();
 	const { selectedConversation } = useConversation();
 	const { socket } = useSocketContext();
 
@@ -30,13 +32,17 @@ const MessageInput = () => {
         e.preventDefault();
         if (!message && !file) return;
 
-        await sendMessage({ text: message, file });
+        if (selectedConversation?.isAI) {
+            await sendAIMessage({ text: message });
+        } else {
+            await sendMessage({ text: message, file });
+        }
 
         setMessage("");
         setFile(null);
         setPreview(null);
 
-		if (socket && selectedConversation) {
+		if (socket && selectedConversation && !selectedConversation.isAI) {
             socket.emit("stopTyping", {
                 senderId: socket.id,
                 receiverId: selectedConversation._id,
@@ -53,6 +59,9 @@ const handleKeyDown = (e) => {
         handleSubmit(e);    // Send message
         return;
     }
+    
+    if (selectedConversation?.isAI) return;
+
     // Emit the "typing" event when the user starts typing
     socket.emit("typing", { 
         senderId: socket.id, 
@@ -112,7 +121,7 @@ const handleKeyUp = () => {
 
                         onChange={(e) => {
                             setMessage(e.target.value);
-                            if (socket && selectedConversation) {
+                            if (socket && selectedConversation && !selectedConversation.isAI) {
                                 socket.emit("typing", {
                                     senderId: socket.id,
                                     receiverId: selectedConversation._id,
@@ -120,7 +129,7 @@ const handleKeyUp = () => {
                             }
                         }}
                         onBlur={() => {
-                            if (socket && selectedConversation) {
+                            if (socket && selectedConversation && !selectedConversation.isAI) {
                                 socket.emit("stopTyping", {
                                     senderId: socket.id,
                                     receiverId: selectedConversation._id,
@@ -145,7 +154,7 @@ const handleKeyUp = () => {
                     {/* Send Button */}
                     <button type="submit" className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
                     onClick={() => showEmojiPicker && setShowEmojiPicker(false)}>
-                        {loading ? <div className="loading loading-spinner"></div> : <BsSend />}
+                        {(loading || aiLoading) ? <div className="loading loading-spinner"></div> : <BsSend />}
                     </button>
                 </div>
             </form>

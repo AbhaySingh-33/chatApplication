@@ -8,6 +8,9 @@ const useGetMessages = () => {
 
   useEffect(() => {
     const getMessages = async () => {
+      // Skip fetching if it's the AI conversation
+      if (selectedConversation?.isAI) return;
+
       setLoading(true);
       try {
         const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/messages/${selectedConversation._id}`,

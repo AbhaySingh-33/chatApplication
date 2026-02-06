@@ -8,6 +8,7 @@ import mongoSanitize from "express-mongo-sanitize";
 import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import aiChatRoutes from "./routes/aiChat.routes.js";
 
 import connectToMongoDB from "./db/connectToMongoDB.js";
 import { app, server, io } from "./socket/socket.js";
@@ -43,6 +44,7 @@ app.use("/api/messages", messageRoutes); // Messaging routes
 app.use("/api/users", userRoutes); // User-related routes
 app.use("/api/friends", userRoutes);
 app.use("/api/reset", authRoutes);
+app.use("/api/ai-chat", aiChatRoutes); 
 
 
 // Serve frontend static files (for deployment)  express.static is middleware serve ststic files whithout creating routes
