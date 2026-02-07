@@ -12,7 +12,7 @@
 
 A professional, full-stack real-time chat application built with cutting-edge technologies. Experience seamless communication with real-time messaging, AI-powered assistance, video calling, and more.
 
-[Live Demo](#) | [Documentation](#-installation) | [Report Bug](https://github.com/AbhaySingh-33/chatApplication/issues)
+[Live Demo](chat-application-bice-ten.vercel.app) | [Documentation](#-installation) | [Report Bug](https://github.com/AbhaySingh-33/chatApplication/issues)
 
 </div>
 
