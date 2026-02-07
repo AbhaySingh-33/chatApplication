@@ -9,6 +9,33 @@ const useConversation = create((set) => ({
     setConversations: (conversations) => set({ conversations }),
     clearConversations: () => set({ conversations: [] }), // ✅ Clear cache on logout
 
+    conflictHints: {}, // ✅ Store conflict resolver hints by conversation (user) id
+    setConflictHint: (conversationId, hint) =>
+        set((state) => ({
+            conflictHints: {
+                ...state.conflictHints,
+                [conversationId]: hint,
+            },
+        })),
+    clearConflictHint: (conversationId) =>
+        set((state) => {
+            const { [conversationId]: _removed, ...rest } = state.conflictHints;
+            return { conflictHints: rest };
+        }),
+
+    conflictModes: {},
+    setConflictMode: (conversationId, mode) =>
+        set((state) => ({
+            conflictModes: {
+                ...state.conflictModes,
+                [conversationId]: mode,
+            },
+        })),
+
+    draftMessage: "",
+    setDraftMessage: (draftMessage) => set({ draftMessage }),
+    clearDraftMessage: () => set({ draftMessage: "" }),
+
     friends: [], // ✅ Cache friends list
     setFriends: (friends) => set({ friends }),
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BsSend, BsEmojiSmile, BsPaperclip, BsXCircle } from "react-icons/bs";
 import EmojiPicker from "emoji-picker-react";
 import useSendMessage from "../../hooks/useSendMessage";
@@ -13,12 +13,18 @@ const MessageInput = () => {
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 	const { loading, sendMessage } = useSendMessage();
     const { sendAIMessage, loading: aiLoading } = useAIChat();
-	const { selectedConversation } = useConversation();
+	const { selectedConversation, draftMessage, clearDraftMessage } = useConversation();
 	const { socket } = useSocketContext();
 
 	const handleEmojiClick = (emojiObject) => {
 		setMessage((prev) => prev + emojiObject.emoji);
 	};
+
+    useEffect(() => {
+        if (!draftMessage) return;
+        setMessage(draftMessage);
+        clearDraftMessage();
+    }, [draftMessage, clearDraftMessage]);
 
 	const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];

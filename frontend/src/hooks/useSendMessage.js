@@ -39,7 +39,13 @@ const uploadToCloudinary = async (file) => {
 
 const useSendMessage = () => {
   const [loading, setLoading] = useState(false);
-  const { messages, setMessages, selectedConversation } = useConversation();
+  const {
+    messages,
+    setMessages,
+    selectedConversation,
+    setConflictHint,
+    setDraftMessage,
+  } = useConversation();
 
   const sendMessage = async ({ text, file, replyTo }) => {
     setLoading(true);
@@ -66,8 +72,30 @@ const useSendMessage = () => {
       );
 
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (!res.ok) {
+        if (data?.blocked) {
+          setConflictHint(selectedConversation._id, {
+            senderId: null,
+            receiverId: null,
+            messageId: null,
+            severity: data.severity || "low",
+            neutralRephrase: data.neutralRephrase || "",
+            compromiseSuggestions: data.compromiseSuggestions || [],
+            action: "blocked",
+            createdAt: new Date().toISOString(),
+          });
+          if (data.neutralRephrase) {
+            setDraftMessage(data.neutralRephrase);
+          }
+          toast.error("Message blocked due to conflict tone");
+          return;
+        }
+        throw new Error(data.error || "Failed to send message");
+      }
 
+      if (data?.moderation?.action === "modified") {
+        toast("Message softened");
+      }
       setMessages([...messages, data]);
     } catch (error) {
       console.error("Send message failed:", error.message);

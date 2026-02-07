@@ -2,11 +2,13 @@ import { useEffect } from "react";
 import { useSocketContext } from "../context/SocketContext";
 import useConversation from "../zustand/useConversation";
 import notificationSound from "../assets/sounds/notification.mp3";
+import { useAuthContext } from "../context/AuthContext";
 
 const useListenMessages = () => {
     const { socket } = useSocketContext();
+    const { authUser } = useAuthContext();
     const { messages, setMessages, selectedConversation, incrementUnreadMessages,
-            setTypingStatus,updateMessageStatus,updateAllMessageStatuses,updateMessageReactions } = useConversation();
+            setTypingStatus,updateMessageStatus,updateAllMessageStatuses,updateMessageReactions, setConflictHint, conflictModes } = useConversation();
 
             useEffect(() => {
                 socket?.on("newMessage", (newMessage, filteredUser) => {
@@ -89,6 +91,27 @@ const useListenMessages = () => {
     
         return () => socket.off("reactionUpdated");
     }, [socket]);
+
+    useEffect(() => {
+        if (!socket || !authUser?._id) return;
+
+        const handleConflictResolution = (payload) => {
+            const { senderId, receiverId } = payload || {};
+            if (!senderId || !receiverId) return;
+
+            const peerId = senderId === authUser._id ? receiverId : senderId;
+            if (!peerId) return;
+
+            if (conflictModes?.[peerId] === "off") return;
+            setConflictHint(peerId, payload);
+        };
+
+        socket.on("conflictResolution", handleConflictResolution);
+
+        return () => {
+            socket.off("conflictResolution", handleConflictResolution);
+        };
+    }, [socket, authUser?._id, setConflictHint, conflictModes]);
     
     useEffect(() => {
         socket?.on("messageDeleted", (updatedMessages,filteredUser,RfilteredUser) => {

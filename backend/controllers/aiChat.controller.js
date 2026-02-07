@@ -170,7 +170,7 @@ export const getAIConversationMessages = async (req, res) => {
       participants: { $all: [userId, AI_USER_ID] },
     }).populate({
       path: "messages",
-      select: "senderId receiverId message media status reactions replyTo createdAt",
+      select: "senderId receiverId message media status reactions replyTo moderation createdAt",
       options: { sort: { createdAt: 1 } },
     });
 
@@ -187,6 +187,7 @@ export const getAIConversationMessages = async (req, res) => {
       status: msg.status,
       reactions: msg.reactions,
       replyTo: msg.replyTo,
+      moderation: msg.moderation || { action: "none" },
       createdAt: msg.createdAt,
     }));
 

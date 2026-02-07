@@ -3,6 +3,20 @@ import Message from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import User from "../models/user.model.js";
 import mongoSanitize from "express-mongo-sanitize";
+import {
+    analyzeConflictForDraft,
+    resolveConflictIfNeeded,
+} from "../utils/conflictResolver.js";
+
+const DEFAULT_CONFLICT_MODE = "suggest";
+const ALLOWED_CONFLICT_MODES = new Set(["off", "suggest", "modify", "block"]);
+
+const getConflictModeForUser = (conversation, userId) => {
+    const entry = conversation?.conflictSettings?.find(
+        (setting) => setting.userId?.toString() === userId.toString()
+    );
+    return entry?.mode || DEFAULT_CONFLICT_MODE;
+};
 
 export const sendMessage = async (req, res) => {
     try {
@@ -28,13 +42,45 @@ export const sendMessage = async (req, res) => {
 
         const filteredUser = await User.findById(senderId).select("-password");
 
+        const conflictMode = getConflictModeForUser(conversation, senderId);
+        let textToSend = text || "";
+        let moderation = null;
+        let preResolution = null;
+
+        if (text && (conflictMode === "modify" || conflictMode === "block")) {
+            preResolution = await analyzeConflictForDraft({
+                senderId,
+                receiverId,
+                draftText: text,
+            });
+
+            if (preResolution && conflictMode === "block") {
+                return res.status(409).json({
+                    blocked: true,
+                    severity: preResolution.severity,
+                    neutralRephrase: preResolution.neutralRephrase,
+                    compromiseSuggestions: preResolution.compromiseSuggestions,
+                });
+            }
+
+            if (preResolution && conflictMode === "modify" && preResolution.neutralRephrase) {
+                textToSend = preResolution.neutralRephrase;
+                moderation = {
+                    action: "modified",
+                    originalText: text,
+                    createdAt: new Date(),
+                };
+            }
+        }
+
         const newMessage = new Message({
             senderId,
             receiverId,
-            message: text || "",
+            message: textToSend || "",
             media: media || null,
             status: "sent", //  Initially, set status as "sent"
             replyTo: replyTo ? { messageId: replyTo.messageId, text: replyTo.message } : null, //  Store replied message
+            moderation: moderation || undefined,
         });
 
         conversation.messages.push(newMessage._id);
@@ -50,6 +96,46 @@ export const sendMessage = async (req, res) => {
         }
 
         res.status(201).json(newMessage);
+
+        if (conflictMode !== "off") {
+            setImmediate(async () => {
+                try {
+                    const resolution =
+                        preResolution ||
+                        (await resolveConflictIfNeeded({
+                            senderId,
+                            receiverId,
+                            latestMessage: newMessage,
+                        }));
+
+                    if (!resolution) return;
+
+                    const payload = {
+                        senderId,
+                        receiverId,
+                        messageId: newMessage._id,
+                        severity: resolution.severity,
+                        neutralRephrase: resolution.neutralRephrase,
+                        compromiseSuggestions: resolution.compromiseSuggestions,
+                        action: moderation?.action === "modified" ? "modified" : "suggested",
+                        originalText: moderation?.originalText || null,
+                        createdAt: new Date().toISOString(),
+                    };
+
+                    const receiverSocketId = getReceiverSocketId(receiverId);
+                    const senderSocketId = getReceiverSocketId(senderId);
+
+                    if (receiverSocketId) {
+                        io.to(receiverSocketId).emit("conflictResolution", payload);
+                    }
+                    if (senderSocketId) {
+                        io.to(senderSocketId).emit("conflictResolution", payload);
+                    }
+                } catch (error) {
+                    console.error("Conflict resolver error:", error.message);
+                }
+            });
+        }
     } catch (error) {
         console.log("Error in sendMessage controller: ", error.message);
         res.status(500).json({ error: "Internal server error" });
@@ -66,7 +152,7 @@ export const getMessages = async (req, res) => {
             participants: { $all: [senderId, userToChatId] },
         }).populate({
             path: "messages",
-            select: "senderId receiverId message media status reactions replyTo createdAt", //  Added "reactions"
+            select: "senderId receiverId message media status reactions replyTo moderation createdAt", //  Added "reactions"
             options: { sort: { createdAt: 1 } }, // Sort messages oldest to newest
         }).lean(); // Faster performance
 
@@ -88,12 +174,75 @@ export const getMessages = async (req, res) => {
             status: msg.status, //  Include status
             reactions: msg.reactions || [], //  Include reactions
             replyTo: msg.replyTo || null, // Include reply message details
+            moderation: msg.moderation || { action: "none" },
             createdAt: msg.createdAt,
         }));
 
         res.status(200).json(formattedMessages);
     } catch (error) {
         console.log("Error in getMessages controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const getConflictMode = async (req, res) => {
+    try {
+        const { id: userToChatId } = req.params;
+        const userId = req.user._id;
+
+        const conversation = await Conversation.findOne({
+            participants: { $all: [userId, userToChatId] },
+        }).lean();
+
+        const mode = conversation
+            ? getConflictModeForUser(conversation, userId)
+            : DEFAULT_CONFLICT_MODE;
+
+        res.status(200).json({ mode });
+    } catch (error) {
+        console.error("Error getting conflict mode:", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const setConflictMode = async (req, res) => {
+    try {
+        const sanitizedBody = mongoSanitize.sanitize(req.body);
+        const { mode } = sanitizedBody;
+        const { id: userToChatId } = req.params;
+        const userId = req.user._id;
+
+        if (!ALLOWED_CONFLICT_MODES.has(mode)) {
+            return res.status(400).json({ error: "Invalid conflict mode" });
+        }
+
+        let conversation = await Conversation.findOne({
+            participants: { $all: [userId, userToChatId] },
+        });
+
+        if (!conversation) {
+            conversation = await Conversation.create({
+                participants: [userId, userToChatId],
+                conflictSettings: [{ userId, mode }],
+            });
+        } else {
+            const existing = conversation.conflictSettings?.find(
+                (setting) => setting.userId?.toString() === userId.toString()
+            );
+            if (existing) {
+                existing.mode = mode;
+            } else {
+                conversation.conflictSettings = [
+                    ...(conversation.conflictSettings || []),
+                    { userId, mode },
+                ];
+            }
+            await conversation.save();
+        }
+
+        res.status(200).json({ mode });
+    } catch (error) {
+        console.error("Error setting conflict mode:", error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 };

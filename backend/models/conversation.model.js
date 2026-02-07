@@ -15,6 +15,16 @@ const conversationSchema = new mongoose.Schema(
 				default: [],
 			},
 		],
+		conflictSettings: [
+			{
+				userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+				mode: {
+					type: String,
+					enum: ["off", "suggest", "modify", "block"],
+					default: "suggest",
+				},
+			},
+		],
 	},
 	{ timestamps: true }
 );

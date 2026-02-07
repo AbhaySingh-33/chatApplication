@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import useConversation from "../../zustand/useConversation";
 import MessageInput from "./MessageInput";
 import Messages from "./Messages";
+import ConflictResolverPanel from "./ConflictResolverPanel";
 import { TiMessages } from "react-icons/ti";
 import { useAuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +10,7 @@ import { Phone, Video, Menu } from "lucide-react";
 import { useSocketContext } from "../../context/SocketContext";
 import Peer from "simple-peer/simplepeer.min.js";
 import toast from "react-hot-toast";
+import useConflictMode from "../../hooks/useConflictMode";
 
 const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
   const {
@@ -23,6 +25,7 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
   const { socket } = useSocketContext();
   const { authUser } = useAuthContext();
+  const { mode, updateMode, loading: conflictModeLoading } = useConflictMode();
 
   const [incomingCall, setIncomingCall] = useState(null);
   const [callAccepted, setCallAccepted] = useState(false);
@@ -374,7 +377,22 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
             </div>
             
             {!selectedConversation?.isAI ? (
-            <div className="flex gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-1 bg-white/10 border border-white/10 rounded-lg px-2 py-1">
+                <span className="text-[10px] uppercase tracking-wider text-blue-200">Tone</span>
+                <select
+                  value={mode}
+                  onChange={(e) => updateMode(e.target.value)}
+                  disabled={conflictModeLoading}
+                  className="bg-transparent text-blue-100 text-xs outline-none cursor-pointer"
+                  title="Conflict resolution mode"
+                >
+                  <option value="off">Off</option>
+                  <option value="suggest">Suggest</option>
+                  <option value="modify">Modify</option>
+                  <option value="block">Block</option>
+                </select>
+              </div>
               <Phone
                 className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-200 cursor-pointer hover:text-green-400 transition-all duration-200 hover:scale-110"
                 onClick={() => {
@@ -543,6 +561,7 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
             <Messages />
           </div>
           <div className="p-1 sm:p-2 border-t border-blue-300/20 bg-blue-900/20 backdrop-blur-sm animate-fade-in delay-300">
+            <ConflictResolverPanel />
             <MessageInput />
           </div>
         </>

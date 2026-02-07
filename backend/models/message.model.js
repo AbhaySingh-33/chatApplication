@@ -23,22 +23,27 @@ const messageSchema = new mongoose.Schema(
         status: {
             type: String,
             enum: ["sent", "delivered", "seen"],
-            default: "sent"
+            default: "sent",
         },
-
         replyTo: {
-            messageId: { type: mongoose.Schema.Types.ObjectId, ref: "Message" }, // ✅ Store replied message ID
-            text: { type: String }, // ✅ Store replied message text
+            messageId: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
+            text: { type: String },
         },
-
-         // ✅ Reaction Feature
-    reactions: [
-        {
-            userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-            emoji: { type: String } // Example: "❤️", "👍", "😂"
-        }
-    ]
-        
+        reactions: [
+            {
+                userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+                emoji: { type: String },
+            },
+        ],
+        moderation: {
+            action: {
+                type: String,
+                enum: ["none", "modified"],
+                default: "none",
+            },
+            originalText: { type: String, default: null },
+            createdAt: { type: Date, default: null },
+        },
     },
     { timestamps: true }
 );
