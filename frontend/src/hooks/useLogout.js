@@ -25,7 +25,8 @@ const useLogout = () => {
 			setAuthUser(null);
 			clearConversations(); // ✅ Clear cached conversations on logout
 		} catch (error) {
-			toast.error(error.message);
+			console.error("Logout failed:", error.message);
+			toast.error("Failed to logout");
 		} finally {
 			setLoading(false);
 		}

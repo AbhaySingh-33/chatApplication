@@ -99,7 +99,8 @@ const Conversation = ({ conversation, lastIdx, emoji }) => {
       toast.success("Friend request sent!");
       setRequestSent(true);
     } catch (error) {
-      toast.error(error.message || "Failed to send request");
+      console.error("Failed to send friend request:", error.message);
+      toast.error("Failed to send friend request");
     }
   };
 

@@ -5,12 +5,12 @@ import Messages from "./Messages";
 import { TiMessages } from "react-icons/ti";
 import { useAuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Phone, Video } from "lucide-react";
+import { Phone, Video, Menu } from "lucide-react";
 import { useSocketContext } from "../../context/SocketContext";
 import Peer from "simple-peer/simplepeer.min.js";
 import toast from "react-hot-toast";
 
-const MessageContainer = () => {
+const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
   const {
     selectedConversation,
     setSelectedConversation,
@@ -348,18 +348,29 @@ const MessageContainer = () => {
       onClick={() => setShowDelete(null)}
     >
       {isEmptyObject(selectedConversation) ? (
-        <NoChatSelected />
+        <NoChatSelected sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       ) : (
         <>
           <div className="bg-blue-900/40 backdrop-blur-sm px-2 sm:px-4 py-2 sm:py-3 flex justify-between items-center sticky top-0 z-20 border-b border-blue-300/20 animate-fade-in">
-            <div>
-              <span className="text-blue-200 text-xs sm:text-sm">To:</span>{" "}
-              <span className="text-white font-bold text-sm sm:text-base">
-                {selectedConversation.fullName}
-              </span>
-              {selectedConversation?.isAI && (
-                <span className="ml-2 text-xs text-sky-400 font-semibold border border-sky-400 px-1 rounded">AI</span>
-              )}
+            <div className="flex items-center gap-2">
+                {!sidebarOpen && (
+                    <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="hidden sm:flex p-1 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-all duration-300 border border-white/20"
+                        title="Show Sidebar"
+                    >
+                        <Menu className="w-5 h-5 text-white" />
+                    </button>
+                )}
+                <div>
+                    <span className="text-blue-200 text-xs sm:text-sm">To:</span>{" "}
+                    <span className="text-white font-bold text-sm sm:text-base">
+                        {selectedConversation.fullName}
+                    </span>
+                    {selectedConversation?.isAI && (
+                        <span className="ml-2 text-xs text-sky-400 font-semibold border border-sky-400 px-1 rounded">AI</span>
+                    )}
+                </div>
             </div>
             
             {!selectedConversation?.isAI ? (
@@ -542,11 +553,20 @@ const MessageContainer = () => {
 
 export default MessageContainer;
 
-const NoChatSelected = () => {
+const NoChatSelected = ({ sidebarOpen, setSidebarOpen }) => {
   const { authUser } = useAuthContext();
   const navigate = useNavigate();
   return (
-    <div className="flex items-center justify-center w-full h-full bg-blue-900/10 backdrop-blur-sm">
+    <div className="flex items-center justify-center w-full h-full bg-blue-900/10 backdrop-blur-sm relative">
+      {!sidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="hidden sm:flex absolute top-4 left-4 z-30 p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-all duration-300 border border-white/20"
+            title="Show Sidebar"
+          >
+            <Menu className="w-5 h-5 text-white" />
+          </button>
+      )}
       <div className="px-4 text-center sm:text-lg md:text-xl text-blue-100 font-semibold flex flex-col items-center justify-center gap-6 animate-fade-in">
         {authUser?.profilePic && (
           <div

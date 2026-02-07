@@ -6,11 +6,14 @@ import { useNavigate } from "react-router-dom";
 import useListenFriendUpdates from "../../hooks/useListenFriendUpdates";
 import useGetMe from "../../hooks/useGetMe";
 import useListenMessages from "../../hooks/useListenMessages";
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 
 const Home = () => {
   const { selectedConversation } = useConversation();
   const { authUser } = useAuthContext();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Sync fresh user data (friends list) on mount to correct loose states
   useGetMe();
@@ -42,11 +45,11 @@ const Home = () => {
         <div
           className={`${
             selectedConversation?._id ? "hidden sm:flex" : "flex"
-          } w-full sm:w-[340px] h-full flex-col overflow-hidden animate-fade-in-left ${
+          } ${sidebarOpen ? "sm:w-[340px]" : "sm:w-0"} w-full h-full flex-col overflow-hidden animate-fade-in-left transition-all duration-300 ${
             !selectedConversation?._id ? "pt-14 sm:pt-0" : ""
           }`}
         >
-          <Sidebar />
+          <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         </div>
 
         {/* MessageContainer */}
@@ -55,7 +58,7 @@ const Home = () => {
             selectedConversation?._id ? "flex " : "hidden sm:flex"
           } w-full flex-1 animate-fade-in-right`}
         >
-          <MessageContainer />
+          <MessageContainer sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         </div>
       </div>
     </div>

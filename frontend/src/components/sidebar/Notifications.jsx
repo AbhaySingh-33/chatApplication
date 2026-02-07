@@ -20,7 +20,7 @@ const Notifications = () => {
                 if (data.error) throw new Error(data.error);
                 setRequests(data);
             } catch (error) {
-                console.log(error);
+                console.error("Failed to fetch notifications:", error.message);
             }
         };
 
@@ -66,7 +66,8 @@ const Notifications = () => {
             }
 
         } catch (error) {
-            toast.error(error.message);
+            console.error("Failed to accept friend request:", error.message);
+            toast.error("Failed to accept friend request");
         }
     };
 
@@ -84,7 +85,8 @@ const Notifications = () => {
             setRequests(requests.filter((r) => r._id !== senderId));
             toast.success("Request rejected");
         } catch (error) {
-            toast.error(error.message);
+            console.error("Failed to reject friend request:", error.message);
+            toast.error("Failed to reject friend request");
         }
     };
 

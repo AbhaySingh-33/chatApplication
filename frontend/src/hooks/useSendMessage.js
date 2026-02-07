@@ -70,11 +70,12 @@ const useSendMessage = () => {
 
       setMessages([...messages, data]);
     } catch (error) {
+      console.error("Send message failed:", error.message);
       if (error.message && error.message.includes("i is not iterable")) {
         toast.error("An error occurred. Refresh the page");
         window.location.reload();
       } else {
-        toast.error(error.message);
+        toast.error("Failed to send message");
       }
     } finally {
       setLoading(false);

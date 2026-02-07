@@ -28,8 +28,8 @@ const useLogin = () => {
 			setAuthUser(data);
 		} catch (error) {
 			setshow(true);
-			toast.error(error.message);
-			console.log(error.message)
+			console.error("Login failed:", error.message);
+			toast.error("Failed to login");
 		} finally {
 			setLoading(false);
 		}
