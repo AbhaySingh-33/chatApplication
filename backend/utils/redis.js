@@ -17,8 +17,8 @@ export const initializeRedis = async () => {
       url: redisUrl,
       socket: {
         reconnectStrategy: (retries) => {
-          if (retries > 10) {
-            console.error("Redis reconnection failed after 10 retries");
+          if (retries > 1) {
+            console.error("Redis reconnection failed after 1 retry");
             return new Error("Redis max retries exceeded");
           }
           return retries * 100;

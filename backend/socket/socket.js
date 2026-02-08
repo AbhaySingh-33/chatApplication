@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 import Message from "../models/message.model.js";
+import Group from "../models/group.model.js";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { getRedisClients, isRedisConnected } from "../utils/redis.js";
 
@@ -143,6 +144,14 @@ socket.on("call:rejected", ({ to, from }) => {
   const userId = socket.handshake.query.userId;
   if (userId && userId !== "undefined") {
     userSocketMap[userId] = socket.id;
+
+    // Auto-join user to all their groups for real-time updates
+    Group.find({ members: userId })
+      .select("_id")
+      .then((groups) => {
+        groups.forEach((g) => socket.join(`group:${g._id.toString()}`));
+      })
+      .catch((err) => console.error("Auto-join groups error:", err));
   }
 
   // Notify all clients about online users
@@ -189,6 +198,27 @@ socket.on("call:rejected", ({ to, from }) => {
     } catch (error) {
       console.error("Error updating message status:", error);
     }
+  });
+
+  socket.on("group:join", async ({ groupId }) => {
+    try {
+      const userId = socket.handshake.query.userId;
+      if (!groupId || !userId) return;
+      const group = await Group.findById(groupId).select("members");
+      if (!group) return;
+      const isMember = group.members?.some(
+        (id) => id.toString() === userId.toString()
+      );
+      if (!isMember) return;
+      socket.join(`group:${groupId}`);
+    } catch (error) {
+      console.error("Group join error:", error.message);
+    }
+  });
+
+  socket.on("group:leave", ({ groupId }) => {
+    if (!groupId) return;
+    socket.leave(`group:${groupId}`);
   });
 
   // Handle disconnection

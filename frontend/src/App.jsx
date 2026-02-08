@@ -12,6 +12,7 @@ import Verification from "./pages/verifyEmail/Verification";
 import Profile from "./pages/home/Profile";
 import ForgotPassword from "./pages/changePassword/ForgotPassword";
 import ResetPassword from "./pages/changePassword/ResetPassword";
+import Groups from "./pages/groups/Groups";
 
 function App() {
   const { authUser } = useAuthContext();
@@ -76,6 +77,11 @@ function App() {
           <Route
             path="/profile"
             element={authUser ? <Profile /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/groups"
+            element={authUser ? <Groups /> : <Navigate to="/login" />}
           />
 
           <Route

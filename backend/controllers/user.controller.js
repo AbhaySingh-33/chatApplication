@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import mongoSanitize from "express-mongo-sanitize";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import Message from "../models/message.model.js";
+import bcrypt from "bcryptjs";
 
 export const getUsersForSidebar = async (req, res) => {
 	try {
@@ -173,13 +174,30 @@ export const removeFriend = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const userId = req.user._id;
-        // Sanitize input data
         const sanitizedBody = mongoSanitize.sanitize(req.body);
-        const { username, profilePic } = sanitizedBody;
+        const { fullName, username, profilePic, currentPassword, newPassword } = sanitizedBody;
+    
+        const updateData = {};
+        if (fullName) updateData.fullName = fullName;
+        if (username) updateData.username = username;
+        if (profilePic) updateData.profilePic = profilePic;
+
+        // Handle password update
+        if (currentPassword && newPassword) {
+            const user = await User.findById(userId);
+            const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
+            
+            if (!isPasswordCorrect) {
+                return res.status(400).json({ error: "Current password is incorrect" });
+            }
+            
+            const salt = await bcrypt.genSalt(10);
+            updateData.password = await bcrypt.hash(newPassword, salt);
+        }
     
         const updatedUser = await User.findByIdAndUpdate(
           userId,
-          { username, profilePic },
+          updateData,
           { new: true }
         ).select("-password");
     

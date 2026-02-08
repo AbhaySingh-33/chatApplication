@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import aiChatRoutes from "./routes/aiChat.routes.js";
+import groupRoutes from "./routes/group.routes.js";
 
 import connectToMongoDB from "./db/connectToMongoDB.js";
 import { app, server, io } from "./socket/socket.js";
@@ -59,6 +60,7 @@ app.use("/api/users", userRoutes); // User-related routes
 app.use("/api/friends", userRoutes);
 app.use("/api/reset", authRoutes);
 app.use("/api/ai-chat", aiChatRoutes); 
+app.use("/api/groups", groupRoutes);
 
 
 // Serve frontend static files (for deployment)  express.static is middleware serve ststic files whithout creating routes

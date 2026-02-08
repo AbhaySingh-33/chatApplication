@@ -11,9 +11,16 @@ const Profile = () => {
   const { logout } = useLogout();
   const navigate = useNavigate();
   const { selectedConversation, setSelectedConversation, friends, setFriends } = useConversation();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editFullName, setEditFullName] = useState(authUser.fullName);
   const [editUsername, setEditUsername] = useState(authUser.username);
   const [editProfilePic, setEditProfilePic] = useState(authUser.profilePic);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [removingFriendId, setRemovingFriendId] = useState(null);
 
   const fetchFriends = useCallback(async (force = false) => {
     // Cache Check: If friends exist in Zustand and invalidation isn't forced, skip API
@@ -34,22 +41,54 @@ const Profile = () => {
 
   const handleUpdateProfile = async () => {
     try {
+      setIsLoading(true);
       let profilePicUrl = authUser.profilePic;
       if (editProfilePic && typeof editProfilePic !== "string") {
         profilePicUrl = await uploadToCloudinary(editProfilePic);
       }
 
+      const updateData = { fullName: editFullName, username: editUsername, profilePic: profilePicUrl };
+      
+      // Update password if provided
+      if (currentPassword && newPassword) {
+        if (newPassword !== confirmPassword) {
+          alert("New passwords don't match!");
+          setIsLoading(false);
+          return;
+        }
+        updateData.currentPassword = currentPassword;
+        updateData.newPassword = newPassword;
+      }
+
       const res = await axios.put(
         `${import.meta.env.VITE_BACKEND_URL}/api/users/update-profile`,
-        { username: editUsername, profilePic: profilePicUrl },
+        updateData,
         { withCredentials: true }
       );
 
       localStorage.setItem("chat-user", JSON.stringify(res.data));
       setAuthUser(res.data);
-      setIsEditing(false);
+      setIsDialogOpen(false);
+      setPreviewImage(null);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      alert("Profile updated successfully!");
     } catch (err) {
       console.error("Profile update failed:", err);
+      alert(err.response?.data?.error || "Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditProfilePic(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setPreviewImage(reader.result);
+      reader.readAsDataURL(file);
     }
   };
 
@@ -70,16 +109,17 @@ const Profile = () => {
   };
 
   const handleRemoveFriend = async (friendId) => {
+    if (!confirm("Are you sure you want to remove this friend?")) return;
+    
     try {
+      setRemovingFriendId(friendId);
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/api/friends/${friendId}`,
         { withCredentials: true }
       );
       
-      // ✅ Invalidate cache to force re-fetch
       fetchFriends(true);
       
-      // ✅ Update Global Auth Context
       const updatedFriends = authUser.friends.filter(id => 
           (typeof id === 'object' ? id._id : id) !== friendId
       );
@@ -92,6 +132,9 @@ const Profile = () => {
       }
     } catch (err) {
       console.error("Failed to remove friend:", err);
+      alert("Failed to remove friend");
+    } finally {
+      setRemovingFriendId(null);
     }
   };
 
@@ -113,6 +156,125 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-2 sm:p-4">
+      {/* Edit Profile Dialog */}
+      {isDialogOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-white/95 to-white/90 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-t-2xl">
+              <h2 className="text-xl font-bold text-white">Edit Profile</h2>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              {/* Profile Picture */}
+              <div className="flex flex-col items-center">
+                <div className="relative group">
+                  <img
+                    src={previewImage || authUser.profilePic}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-purple-200 shadow-xl"
+                  />
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                  </label>
+                </div>
+                <p className="text-xs text-black/60 mt-2">Click to change photo</p>
+              </div>
+
+              {/* Form Fields */}
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={editFullName}
+                  onChange={(e) => setEditFullName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">Username</label>
+                <input
+                  type="text"
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
+                />
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-semibold text-black mb-3">Change Password (Optional)</h3>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">Current Password</label>
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black placeholder-gray-400"
+                      placeholder="Enter current password"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">New Password</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black placeholder-gray-400"
+                      placeholder="Enter new password"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">Confirm New Password</label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black placeholder-gray-400"
+                      placeholder="Confirm new password"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleUpdateProfile}
+                  disabled={isLoading}
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    setEditFullName(authUser.fullName);
+                    setEditUsername(authUser.username);
+                    setEditProfilePic(authUser.profilePic);
+                    setPreviewImage(null);
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                  }}
+                  disabled={isLoading}
+                  className="px-4 py-2.5 bg-gray-200 text-black font-medium rounded-lg hover:bg-gray-300 disabled:opacity-50 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Professional Back Button */}
       <button
         onClick={() => navigate('/')}
@@ -131,68 +293,39 @@ const Profile = () => {
             ${selectedConversation?._id ? "hidden" : "flex"} sm:flex`}
         >
           {/* Profile Section - Fixed */}
-          <div className="flex flex-col items-center p-1.5 sm:p-6 border-b border-white/10 bg-white/5">
-            <img
-              src={isEditing ? editProfilePic : authUser.profilePic}
-              alt="user avatar"
-              className="w-12 h-12 sm:w-24 sm:h-24 rounded-full border-4 border-gradient-to-r from-blue-500 to-purple-500 shadow-xl ring-4 ring-blue-100/50"
-            />
+          <div className="flex flex-col items-center p-4 sm:p-6 border-b border-white/10 bg-gradient-to-br from-white/10 to-white/5">
+            <div className="relative">
+              <img
+                src={authUser.profilePic}
+                alt="Profile"
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-white/20 shadow-2xl ring-4 ring-purple-500/30"
+              />
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-4 border-white/20 shadow-lg"></div>
+            </div>
+            
+            <div className="text-center mt-4 space-y-1">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">{authUser.fullName}</h2>
+              <p className="text-sm text-white/60">@{authUser.username}</p>
+              <p className="text-xs text-white/50">{authUser.email}</p>
+            </div>
 
-            {isEditing ? (
-              <>
-                <input
-                  type="text"
-                  className="mt-2 sm:mt-4 border rounded px-2 py-0.5 w-full text-gray-700 text-sm"
-                  placeholder="Username"
-                  value={editUsername}
-                  onChange={(e) => setEditUsername(e.target.value)}
-                  title="Update your username"
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="mt-2 sm:mt-4 py-1 w-full text-xs sm:text-sm bg-gray-700 cursor-pointer"
-                  onChange={(e) => setEditProfilePic(e.target.files[0])}
-                  title="Update your profile picture"
-                />
-
-                <div className="flex gap-2 mt-2 sm:mt-3">
-                  <button
-                    onClick={handleUpdateProfile}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-purple-700 cursor-pointer shadow-lg transition-all duration-300"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setEditUsername(authUser.username);
-                      setEditProfilePic(authUser.profilePic);
-                    }}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white text-sm rounded-lg hover:from-gray-700 hover:to-gray-800 cursor-pointer shadow-lg transition-all duration-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className="mt-1 sm:mt-4 text-sm sm:text-xl font-semibold text-gray-800">
-                  {authUser.username}
-                </h3>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="mt-1 sm:mt-2 px-2 py-0.5 sm:px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs sm:text-sm rounded-lg hover:from-blue-600 hover:to-purple-700 cursor-pointer shadow-lg transition-all duration-300"
-                >
-                  Edit Profile
-                </button>
-              </>
-            )}
+            <button
+              onClick={() => setIsDialogOpen(true)}
+              className="mt-4 w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit Profile
+            </button>
 
             <button
               onClick={logout}
-              className="mt-1 sm:mt-4 px-2 py-1 sm:px-4 sm:py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs sm:text-sm rounded-lg hover:from-red-600 hover:to-pink-700 w-full cursor-pointer shadow-lg transition-all duration-300"
+              className="mt-3 w-full px-4 py-2.5 bg-gradient-to-r from-red-500 to-pink-600 text-white text-sm font-medium rounded-lg hover:from-red-600 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2"
             >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
               Log Out
             </button>
           </div>
@@ -229,9 +362,10 @@ const Profile = () => {
                         e.stopPropagation();
                         handleRemoveFriend(friend._id);
                       }}
-                      className="text-red-500 hover:text-red-700 cursor-pointer text-sm sm:text-base hover:bg-red-50 rounded-full p-1 transition-all duration-300"
+                      disabled={removingFriendId === friend._id}
+                      className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-sm hover:bg-red-50 rounded-lg px-2 py-1 transition-all duration-300 font-medium"
                     >
-                      ✕
+                      {removingFriendId === friend._id ? "..." : "Remove"}
                     </button>
                   </div>
                 </li>

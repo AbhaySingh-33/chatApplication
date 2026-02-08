@@ -4,9 +4,12 @@ import SearchInput from "./SearchInput";
 import { useState, useEffect } from "react";
 import { IoNotifications } from "react-icons/io5";
 import Notifications from "./Notifications";
+import { useNavigate } from "react-router-dom";
+import { FaUsers } from "react-icons/fa";
 import { useSocketContext } from "../../context/SocketContext";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+    const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
     const { socket } = useSocketContext();
     const [hasNewNotification, setHasNewNotification] = useState(false);
@@ -25,6 +28,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <div className="flex items-center justify-between gap-2 px-1">
                 <div className="flex-1">
                     <SearchInput />
+                </div>
+                <div 
+                   className="p-2 cursor-pointer rounded-full hover:bg-white/10 transition-all duration-300"
+                   onClick={() => navigate("/groups")}
+                   title="Groups"
+                >
+                    <FaUsers className="text-white text-2xl" />
                 </div>
                 <div 
                     className={`relative cursor-pointer p-2 rounded-full transition-all duration-300 ${showNotifications ? 'bg-blue-600' : 'hover:bg-white/10'}`} 

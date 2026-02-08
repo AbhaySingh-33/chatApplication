@@ -385,7 +385,7 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
                   value={mode}
                   onChange={(e) => updateMode(e.target.value)}
                   disabled={conflictModeLoading}
-                  className="bg-transparent text-blue-100 text-xs outline-none cursor-pointer"
+                  className="bg-white text-gray-900 text-xs outline-none cursor-pointer rounded px-1"
                   title="Conflict resolution mode"
                 >
                   <option value="off">Off</option>
@@ -611,3 +611,4 @@ const NoChatSelected = ({ sidebarOpen, setSidebarOpen }) => {
     </div>
   );
 };
+  
