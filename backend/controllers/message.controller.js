@@ -152,7 +152,7 @@ export const getMessages = async (req, res) => {
             participants: { $all: [senderId, userToChatId] },
         }).populate({
             path: "messages",
-            select: "senderId receiverId message media status reactions replyTo moderation createdAt", //  Added "reactions"
+            select: "senderId receiverId message media status reactions replyTo moderation tags createdAt", //  Added "reactions"
             options: { sort: { createdAt: 1 } }, // Sort messages oldest to newest
         }).lean(); // Faster performance
 
@@ -175,6 +175,7 @@ export const getMessages = async (req, res) => {
             reactions: msg.reactions || [], //  Include reactions
             replyTo: msg.replyTo || null, // Include reply message details
             moderation: msg.moderation || { action: "none" },
+            tags: msg.tags || [],
             createdAt: msg.createdAt,
         }));
 

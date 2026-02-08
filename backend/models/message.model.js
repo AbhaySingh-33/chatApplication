@@ -35,6 +35,12 @@ const messageSchema = new mongoose.Schema(
                 emoji: { type: String },
             },
         ],
+        tags: [
+            {
+                type: String,
+                enum: ["decision", "task", "issue"],
+            },
+        ],
         moderation: {
             action: {
                 type: String,

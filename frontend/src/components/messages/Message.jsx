@@ -21,6 +21,11 @@ const Message = ({ message }) => {
     const chatClassName = fromMe ? "chat-end" : "chat-start";
     const profilePic = fromMe ? authUser.profilePic : selectedConversation?.profilePic;
     const bubbleBgColor = fromMe ? "bg-blue-500" : "";
+    const tagStyles = {
+        decision: "bg-emerald-500/30 text-emerald-100 border-emerald-400/30",
+        task: "bg-sky-500/30 text-sky-100 border-sky-400/30",
+        issue: "bg-rose-500/30 text-rose-100 border-rose-400/30",
+    };
     const shakeClass = message.shouldShake ? "shake" : "";
 
     // Determine message status
@@ -117,6 +122,20 @@ const Message = ({ message }) => {
                     <div className="reactions flex gap-1 mt-1">
                         {message.reactions.map((r, index) => (
                             <span key={index} className="text-lg cursor-pointer">{r.emoji}</span>
+                        ))}
+                    </div>
+                )}
+
+                {/* Tags */}
+                {message.tags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                        {message.tags.map((tag) => (
+                            <span
+                                key={`${message._id}-${tag}`}
+                                className={`text-[10px] px-2 py-0.5 rounded-full border ${tagStyles[tag] || "bg-white/10 text-white/80 border-white/20"}`}
+                            >
+                                {tag}
+                            </span>
                         ))}
                     </div>
                 )}

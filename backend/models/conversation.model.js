@@ -25,6 +25,24 @@ const conversationSchema = new mongoose.Schema(
 				},
 			},
 		],
+		aiInsights: {
+			topic: { type: String, default: "" },
+			sentiment: {
+				type: String,
+				enum: ["positive", "neutral", "negative"],
+				default: "neutral",
+			},
+			urgency: {
+				type: String,
+				enum: ["low", "medium", "high"],
+				default: "low",
+			},
+			summary: { type: String, default: "" },
+			decisions: [{ type: String }],
+			actionItems: [{ type: String }],
+			messageCount: { type: Number, default: 0 },
+			updatedAt: { type: Date, default: null },
+		},
 	},
 	{ timestamps: true }
 );

@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import mongoSanitize from "express-mongo-sanitize";
 import axios from "axios";
+import { updateAIInsightsForConversation } from "../utils/aiInsights.js";
 
 // Placeholder for AI response
 const getAIResponse = async (userMessage) => {
@@ -152,6 +153,17 @@ export const sendAIMessage = async (req, res) => {
         if (userSocketId) {
           io.to(userSocketId).emit("newMessage", aiMessage, aiUser);
         }
+
+        setImmediate(async () => {
+          try {
+            await updateAIInsightsForConversation({
+              userId,
+              aiUserId: AI_USER_ID,
+            });
+          } catch (error) {
+            console.error("AI insights update error:", error.message);
+          }
+        });
     }, 1000);
 
     // Return current user message status immediately
@@ -170,7 +182,7 @@ export const getAIConversationMessages = async (req, res) => {
       participants: { $all: [userId, AI_USER_ID] },
     }).populate({
       path: "messages",
-      select: "senderId receiverId message media status reactions replyTo moderation createdAt",
+      select: "senderId receiverId message media status reactions replyTo moderation tags createdAt",
       options: { sort: { createdAt: 1 } },
     });
 
@@ -188,12 +200,36 @@ export const getAIConversationMessages = async (req, res) => {
       reactions: msg.reactions,
       replyTo: msg.replyTo,
       moderation: msg.moderation || { action: "none" },
+      tags: msg.tags || [],
       createdAt: msg.createdAt,
     }));
 
     res.status(200).json(formattedMessages);
   } catch (error) {
     console.error("Error fetching AI messages:", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getAIConversationInsights = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const result = await updateAIInsightsForConversation({
+      userId,
+      aiUserId: AI_USER_ID,
+    });
+
+    if (!result) {
+      return res.status(200).json({ insights: null, messageTags: [], cached: true });
+    }
+
+    res.status(200).json({
+      insights: result.insights,
+      messageTags: result.messageTags,
+      cached: result.cached,
+    });
+  } catch (error) {
+    console.error("Error fetching AI insights:", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };

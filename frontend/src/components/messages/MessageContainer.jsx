@@ -3,6 +3,7 @@ import useConversation from "../../zustand/useConversation";
 import MessageInput from "./MessageInput";
 import Messages from "./Messages";
 import ConflictResolverPanel from "./ConflictResolverPanel";
+import AIInsightsPanel from "./AIInsightsPanel";
 import { TiMessages } from "react-icons/ti";
 import { useAuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -558,6 +559,7 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
           )}
 
           <div className="flex-1 overflow-y-auto px-1 sm:px-2 py-1 animate-fade-in delay-200">
+            <AIInsightsPanel />
             <Messages />
           </div>
           <div className="p-1 sm:p-2 border-t border-blue-300/20 bg-blue-900/20 backdrop-blur-sm animate-fade-in delay-300">
