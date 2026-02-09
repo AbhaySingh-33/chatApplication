@@ -13,6 +13,7 @@ import Profile from "./pages/home/Profile";
 import ForgotPassword from "./pages/changePassword/ForgotPassword";
 import ResetPassword from "./pages/changePassword/ResetPassword";
 import Groups from "./pages/groups/Groups";
+import VoiceCall from "./pages/voice/VoiceCall";
 
 function App() {
   const { authUser } = useAuthContext();
@@ -82,6 +83,11 @@ function App() {
           <Route
             path="/groups"
             element={authUser ? <Groups /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/voice-analysis"
+            element={authUser ? <VoiceCall /> : <Navigate to="/login" />}
           />
 
           <Route

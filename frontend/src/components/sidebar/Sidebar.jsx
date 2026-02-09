@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { IoNotifications } from "react-icons/io5";
 import Notifications from "./Notifications";
 import { useNavigate } from "react-router-dom";
-import { FaUsers } from "react-icons/fa";
+import { FaUsers, FaProjectDiagram } from "react-icons/fa";
 import { useSocketContext } from "../../context/SocketContext";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -35,6 +35,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                    title="Groups"
                 >
                     <FaUsers className="text-white text-2xl" />
+                </div>
+                <div 
+                   className="p-2 cursor-pointer rounded-full hover:bg-white/10 transition-all duration-300"
+                   onClick={() => navigate("/voice-analysis")}
+                   title="Voice Knowledge Graph"
+                >
+                    <FaProjectDiagram className="text-blue-400 text-xl" />
                 </div>
                 <div 
                     className={`relative cursor-pointer p-2 rounded-full transition-all duration-300 ${showNotifications ? 'bg-blue-600' : 'hover:bg-white/10'}`} 
