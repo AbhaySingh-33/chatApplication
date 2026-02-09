@@ -63,7 +63,7 @@ export const updateTranscript = async (req, res) => {
 
         const prompt = `
         Analyze the following conversation transcript. 
-        Identify entities strictly falling into these categories: People, Technologies, Tasks.
+        Identify entities strictly falling into these categories: People, Technologies, Tasks, DateTime (dates, times, days).
         Also identify relationships between them.
         
         Transcript: "${fullText}"
@@ -71,7 +71,7 @@ export const updateTranscript = async (req, res) => {
         Return strict JSON format ONLY, no markdown formatting:
         {
             "nodes": [
-                {"id": "unique_id", "label": "Name", "type": "person|technology|task"}
+                {"id": "unique_id", "label": "Name", "type": "person|technology|task|datetime"}
             ],
             "edges": [
                 {"source": "source_id", "target": "target_id", "relation": "verb_or_description"}

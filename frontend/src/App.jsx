@@ -14,13 +14,17 @@ import ForgotPassword from "./pages/changePassword/ForgotPassword";
 import ResetPassword from "./pages/changePassword/ResetPassword";
 import Groups from "./pages/groups/Groups";
 import VoiceCall from "./pages/voice/VoiceCall";
+import { CallContextProvider } from "./context/CallContext";
+import GlobalCallUI from "./components/sidebar/GlobalCallUI";
 
 function App() {
   const { authUser } = useAuthContext();
   const navigate = useNavigate();
 
   return (
+    <CallContextProvider>
     <div className="relative h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
+      <GlobalCallUI />
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
@@ -120,6 +124,7 @@ function App() {
 
       <Toaster />
     </div>
+    </CallContextProvider>
   );
 }
 
