@@ -318,6 +318,28 @@ export const CallContextProvider = ({ children }) => {
         }
     }
 
+    const toggleAudio = () => {
+        if (myStream.current) {
+            const audioTrack = myStream.current.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                return audioTrack.enabled;
+            }
+        }
+        return true;
+    };
+
+    const toggleVideo = () => {
+        if (myStream.current) {
+            const videoTrack = myStream.current.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                return videoTrack.enabled;
+            }
+        }
+        return true;
+    };
+
 
 	return <CallContext.Provider value={{ 
         callState, 
@@ -329,6 +351,8 @@ export const CallContextProvider = ({ children }) => {
         attachLocalVideo,
         attachRemoteVideo,
         attachRemoteAudio,
+        toggleAudio,
+        toggleVideo,
         position, setPosition, isMinimize, setIsMinimize
     }}>{children}</CallContext.Provider>;
 };
