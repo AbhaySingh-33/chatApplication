@@ -50,6 +50,7 @@ export const CallContextProvider = ({ children }) => {
     const userVideo = useRef();
     const userAudio = useRef(); // This needs to be attached in UI
     const myStream = useRef();
+    const remoteStreamRef = useRef(null);
     const noiseProcessor = useRef(null);
 
     useEffect(() => {
@@ -95,6 +96,8 @@ export const CallContextProvider = ({ children }) => {
           noiseProcessor.current.stopProcessing();
           noiseProcessor.current = null;
         }
+
+        remoteStreamRef.current = null;
 
         // Reset refs
         if (myVideo.current) myVideo.current.srcObject = null;
@@ -145,7 +148,11 @@ export const CallContextProvider = ({ children }) => {
                           noiseProcessor.current = new NoiseSuppressionProcessor();
                           await noiseProcessor.current.startProcessing(stream);
                       }
-                      stream = noiseProcessor.current.getProcessedStream();
+                      const processedStream = noiseProcessor.current.getProcessedStream();
+                      // Combine processed audio with original video if exists
+                      const videoTracks = stream.getVideoTracks();
+                      const audioTracks = processedStream.getAudioTracks();
+                      stream = new MediaStream([...audioTracks, ...videoTracks]);
                   } catch (err) {
                       console.warn("Noise suppression failed, using original stream:", err);
                   }
@@ -173,6 +180,7 @@ export const CallContextProvider = ({ children }) => {
               });
 
               newPeer.on("stream", (remoteStream) => {
+                   remoteStreamRef.current = remoteStream;
                    if (userVideo.current && isVideo) {
                         userVideo.current.srcObject = remoteStream;
                    }
@@ -198,9 +206,15 @@ export const CallContextProvider = ({ children }) => {
 
     const acceptCall = async () => {
          // Logic similar to startCall but initiator: false
-         setCallState(prev => ({...prev, callAccepted: true, startTime: Date.now()}));
          const { incomingCall } = callState;
          const isVideo = incomingCall.isVideoCall;
+
+         setCallState(prev => ({
+            ...prev, 
+            callAccepted: true, 
+            startTime: Date.now(),
+            isVideoCall: isVideo
+         }));
 
           try {
              const mediaConstraints = {
@@ -227,7 +241,11 @@ export const CallContextProvider = ({ children }) => {
                           noiseProcessor.current = new NoiseSuppressionProcessor();
                           await noiseProcessor.current.startProcessing(stream);
                       }
-                      stream = noiseProcessor.current.getProcessedStream();
+                      const processedStream = noiseProcessor.current.getProcessedStream();
+                      // Combine processed audio with original video if exists
+                      const videoTracks = stream.getVideoTracks();
+                      const audioTracks = processedStream.getAudioTracks();
+                      stream = new MediaStream([...audioTracks, ...videoTracks]);
                   } catch (err) {
                       console.warn("Noise suppression failed, using original stream:", err);
                   }
@@ -248,6 +266,7 @@ export const CallContextProvider = ({ children }) => {
               });
 
               newPeer.on("stream", (remoteStream) => {
+                   remoteStreamRef.current = remoteStream;
                    if (userVideo.current && isVideo) userVideo.current.srcObject = remoteStream;
                    if (userAudio.current && !isVideo) userAudio.current.srcObject = remoteStream;
               });
@@ -280,15 +299,20 @@ export const CallContextProvider = ({ children }) => {
     const attachRemoteVideo = (el) => {
         userVideo.current = el;
         // If peer has stream, we might need to re-attach. 
-        // Simple-peer streams are tricky to re-get without storing purely.
-        if (peer && peer._remoteStreams && peer._remoteStreams[0] && el) {
+        // Use stored remoteStreamRef for reliability
+        if (remoteStreamRef.current && el) {
+             el.srcObject = remoteStreamRef.current;
+        } else if (peer && peer._remoteStreams && peer._remoteStreams[0] && el) {
+             // Fallback
              el.srcObject = peer._remoteStreams[0];
         }
     };
 
     const attachRemoteAudio = (el) => {
         userAudio.current = el;
-        if(peer && peer._remoteStreams && peer._remoteStreams[0] && el) {
+        if (remoteStreamRef.current && el) {
+            el.srcObject = remoteStreamRef.current;
+        } else if(peer && peer._remoteStreams && peer._remoteStreams[0] && el) {
             el.srcObject = peer._remoteStreams[0];
         }
     }

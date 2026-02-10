@@ -19,6 +19,9 @@ const callGemini = async (prompt) => {
 						parts: [{ text: prompt }],
 					},
 				],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                }
 			}
 		);
 
@@ -34,7 +37,7 @@ const callGemini = async (prompt) => {
 
 export const createVoiceSession = async (req, res) => {
 	try {
-		const userId = req.user._id;
+        const userId = req.user._id;
 		const session = new VoiceSession({ userId, transcript: [], knowledgeGraph: { nodes: [], edges: [] } });
 		await session.save();
 		res.status(201).json(session);
@@ -54,27 +57,32 @@ export const updateTranscript = async (req, res) => {
 
 		session.transcript.push({ text, timestamp: new Date() });
 		
-        // Optimize: Don't update graph on EVERY word, maybe user triggers it or we do it every X chunks.
-        // For this demo, let's update it every time a significant chunk is added, or return the "Pending" state.
-        // Let's TRY to update it "Live" (incrementally).
-        
         // Construct the full text so far for context
         const fullText = session.transcript.map(t => t.text).join(" ");
 
         const prompt = `
-        Analyze the following conversation transcript. 
-        Identify entities strictly falling into these categories: People, Technologies, Tasks, DateTime (dates, times, days).
-        Also identify relationships between them.
+        You are an expert Knowledge Graph extractor.
+        Analyze the following raw speech transcript (which may lack punctuation).
         
+        Step 1: Mentally correct the punctuation and sentence structure.
+        Step 2: Identify ALL entities falling strictly into these categories: 
+        - person (Names like John, Anshu, Srinidhi, etc.)
+        - technology (Tools, Languages, Databases like PostgreSQL, React, etc.)
+        - task (Actionable items, e.g., "frontend task", "database integration")
+        - datetime (Next Friday, Tomorrow, etc.)
+        
+        Step 3: Identify logical relationships between these entities (e.g., WHO is doing WHAT, WHAT involves WHICH technology).
+
         Transcript: "${fullText}"
 
-        Return strict JSON format ONLY, no markdown formatting:
+        Return strict JSON format ONLY.
+        Structure:
         {
             "nodes": [
-                {"id": "unique_id", "label": "Name", "type": "person|technology|task|datetime"}
+                {"id": "unique_string_id", "label": "Display Name", "type": "person|technology|task|datetime"}
             ],
             "edges": [
-                {"source": "source_id", "target": "target_id", "relation": "verb_or_description"}
+                {"source": "source_node_id", "target": "target_node_id", "relation": "UPPERCASE_VERB_PHRASE"}
             ]
         }
         `;
@@ -84,7 +92,7 @@ export const updateTranscript = async (req, res) => {
 
         if (aiResponse) {
              try {
-                // remove markdown code blocks if present
+                // Since we force JSON, we can parse directly, but let's be safe against markdown fences still just in case
                 const cleanJson = aiResponse.replace(/```json/g, "").replace(/```/g, "").trim();
                 const parsed = JSON.parse(cleanJson);
                 if(parsed.nodes && parsed.edges) {
@@ -92,6 +100,7 @@ export const updateTranscript = async (req, res) => {
                 }
              } catch (e) {
                  console.error("Failed to parse AI JSON:", e);
+                 console.log("AI Response was:", aiResponse);
              }
         }
 
