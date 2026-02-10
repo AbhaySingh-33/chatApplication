@@ -293,27 +293,28 @@ export const CallContextProvider = ({ children }) => {
     // We need to expose refs so the GlobalCallUI can attach the video elements
     const attachLocalVideo = (el) => {
         myVideo.current = el;
-        if(myStream.current && el) el.srcObject = myStream.current;
+        if(myStream.current && el && el.srcObject !== myStream.current) {
+            el.srcObject = myStream.current;
+        }
     };
 
     const attachRemoteVideo = (el) => {
         userVideo.current = el;
         // If peer has stream, we might need to re-attach. 
         // Use stored remoteStreamRef for reliability
-        if (remoteStreamRef.current && el) {
-             el.srcObject = remoteStreamRef.current;
-        } else if (peer && peer._remoteStreams && peer._remoteStreams[0] && el) {
-             // Fallback
-             el.srcObject = peer._remoteStreams[0];
+        const remoteStream = remoteStreamRef.current || (peer && peer._remoteStreams && peer._remoteStreams[0]);
+        
+        if (remoteStream && el && el.srcObject !== remoteStream) {
+             el.srcObject = remoteStream;
         }
     };
 
     const attachRemoteAudio = (el) => {
         userAudio.current = el;
-        if (remoteStreamRef.current && el) {
-            el.srcObject = remoteStreamRef.current;
-        } else if(peer && peer._remoteStreams && peer._remoteStreams[0] && el) {
-            el.srcObject = peer._remoteStreams[0];
+        const remoteStream = remoteStreamRef.current || (peer && peer._remoteStreams && peer._remoteStreams[0]);
+
+        if (remoteStream && el && el.srcObject !== remoteStream) {
+            el.srcObject = remoteStream;
         }
     }
 
