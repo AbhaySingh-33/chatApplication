@@ -54,17 +54,15 @@ const GroupSidebar = ({ sidebarOpen, setSidebarOpen }) => {
         >
           Back to Chats
         </button>
-        {sidebarOpen && (
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="hidden sm:flex p-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-all duration-300 border border-white/20"
-            title="Hide Sidebar"
-          >
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-all duration-300 border border-white/20"
+          title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+        >
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+          </svg>
+        </button>
       </div>
 
       <div className="mt-3">

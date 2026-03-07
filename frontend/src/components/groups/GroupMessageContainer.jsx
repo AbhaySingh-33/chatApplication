@@ -18,15 +18,15 @@ const GroupMessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
   if (!selectedGroup?._id) {
     return (
       <div className="flex items-center justify-center w-full h-full bg-blue-900/10 backdrop-blur-sm relative">
-        {!sidebarOpen && (
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="hidden sm:flex absolute top-4 left-4 z-30 p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-all duration-300 border border-white/20"
-            title="Show Sidebar"
-          >
-            <Menu className="w-5 h-5 text-white" />
-          </button>
-        )}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="absolute top-4 left-4 z-30 p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-all duration-300 border border-white/20"
+          title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+        >
+          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+          </svg>
+        </button>
         <div className="px-4 text-center text-blue-100 font-semibold flex flex-col items-center gap-4">
           <p className="text-xl">Select a group to start chatting</p>
           <span className="text-sm text-blue-200/70">
@@ -44,15 +44,15 @@ const GroupMessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
     <div className="relative flex flex-col h-full w-full min-w-0 bg-blue-900/10 backdrop-filter backdrop-blur-lg">
       <div className="bg-blue-900/40 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-3 flex justify-between items-center sticky top-0 z-20 border-b border-blue-300/20">
         <div className="flex items-center gap-2">
-          {!sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="hidden sm:flex p-1 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-all duration-300 border border-white/20"
-              title="Show Sidebar"
-            >
-              <Menu className="w-5 h-5 text-white" />
-            </button>
-          )}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-1 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-all duration-300 border border-white/20"
+            title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+          >
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+            </svg>
+          </button>
           <div>
             <p className="text-white font-bold text-sm sm:text-base">
               {selectedGroup?.name}

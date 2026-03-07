@@ -56,18 +56,29 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
           {/* Header */}
           <div className="bg-white/5 px-4 py-3 mb-0 flex items-center gap-3 shadow-lg border-b border-white/10 backdrop-blur-md relative z-10 w-full overflow-hidden">
              
-             {!sidebarOpen && (
-                 <button 
-                    onClick={() => setSidebarOpen(true)}
-                    className="sm:hidden text-white/80 hover:text-white mr-1"
-                >
-                     <Menu className="w-5 h-5" />
-                </button>
-             )}
+             <button 
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="hidden sm:flex text-white/80 hover:text-white mr-1 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+                title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+             >
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+                 </svg>
+             </button>
+
+             <button 
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="sm:hidden text-white/80 hover:text-white mr-1"
+             >
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+                 </svg>
+             </button>
               
             <div className="relative shrink-0">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-white/20 shadow-md transition-transform hover:scale-105">
                 <img
+                    key={selectedConversation._id}
                     src={selectedConversation.profilePic}
                     alt="user avatar"
                     className="w-full h-full object-cover"
@@ -174,14 +185,15 @@ const NoChatSelected = ({ sidebarOpen, setSidebarOpen }) => {
 	const { authUser } = useAuthContext();
 	return (
 		<div className='flex items-center justify-center w-full h-full relative p-4'>
-            {!sidebarOpen && (
                  <button 
-                    onClick={() => setSidebarOpen(true)}
-                    className="absolute top-4 left-4 sm:hidden text-white/50 hover:text-white p-2 z-10"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="absolute top-4 left-4 text-white/50 hover:text-white p-2 z-10 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+                    title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
                 >
-                     <Menu className="w-6 h-6" />
+                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+                     </svg>
                 </button>
-            )}
 			<div className='px-4 text-center sm:text-lg md:text-xl text-gray-200 font-semibold flex flex-col items-center gap-4 animate-fade-in'>
 				<div>
                     <p className="text-2xl">Welcome 👋 <span className="text-blue-400">{authUser.fullName}</span> ❄</p>

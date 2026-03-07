@@ -54,27 +54,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     <IoNotifications className="text-white text-2xl" />
                     {hasNewNotification && <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse ring-2 ring-gray-800"></span>}
                 </div>
-                {sidebarOpen && (
-                    <button
-                        onClick={() => setSidebarOpen(false)}
-                        className="hidden sm:flex p-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-all duration-300 border border-white/20"
-                        title="Hide Sidebar"
-                    >
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                )}
             </div>
 			
 			<div className='divider px-3 border-white/20 my-2'></div>
 			
             {showNotifications ? (
-                <div className="animate-fade-in delay-100 flex-1 overflow-hidden">
+                <div className="animate-fade-in delay-100 flex-1 overflow-y-auto">
                     <Notifications />
                 </div>
             ) : (
-                <div className="animate-fade-in delay-100 flex-1 overflow-hidden">
+                <div className="animate-fade-in delay-100 flex-1 overflow-y-auto">
                     <Conversations />
                 </div>
             )}
