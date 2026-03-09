@@ -9,6 +9,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import { Phone, Video, Menu } from "lucide-react";
 import useConflictMode from "../../hooks/useConflictMode";
 import { useCallContext } from "../../context/CallContext";
+import { useNavigate } from "react-router-dom";
 
 const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
   const {
@@ -183,6 +184,7 @@ export default MessageContainer;
 
 const NoChatSelected = ({ sidebarOpen, setSidebarOpen }) => {
 	const { authUser } = useAuthContext();
+	const navigate = useNavigate();
 	return (
 		<div className='flex items-center justify-center w-full h-full relative p-4'>
                  <button 
@@ -195,11 +197,18 @@ const NoChatSelected = ({ sidebarOpen, setSidebarOpen }) => {
                      </svg>
                 </button>
 			<div className='px-4 text-center sm:text-lg md:text-xl text-gray-200 font-semibold flex flex-col items-center gap-4 animate-fade-in'>
+				<img
+					src={authUser.profilePic}
+					alt="Profile"
+					className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-blue-400/50 cursor-pointer hover:border-blue-400 transition-all duration-300 hover:scale-110 shadow-xl"
+					onClick={() => navigate("/profile")}
+					title="Go to Profile"
+				/>
 				<div>
-                    <p className="text-2xl">Welcome 👋 <span className="text-blue-400">{authUser.fullName}</span> ❄</p>
-				    <p className="text-sm opacity-70 mt-2">Select a chat to start messaging, use conflict resolution, or AI insights.</p>
+                    <p className="text-xl sm:text-2xl">Welcome 👋 <span className="text-blue-400">{authUser.fullName}</span> ❄</p>
+				    <p className="text-xs sm:text-sm opacity-70 mt-2">Select a chat to start messaging, use conflict resolution, or AI insights.</p>
                 </div>
-				<TiMessages className='text-6xl md:text-8xl text-center text-blue-500/50' />
+				<TiMessages className='text-5xl sm:text-6xl md:text-8xl text-center text-blue-500/50' />
 			</div>
 		</div>
 	);
