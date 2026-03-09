@@ -8,18 +8,17 @@ export const getUsersForSidebar = async (req, res) => {
 	try {
 		const loggedInUserId = req.user._id;
 
-        // Fetch all users except logged in one
 		const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
-        
-        // Fetch current user with populated data to check status efficiently
         const currentUser = await User.findById(loggedInUserId).select("friends");
 
-        // Use Promise.all to fetch unread message counts for each user concurrently
+		if (!currentUser) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
         const usersWithStatus = await Promise.all(filteredUsers.map(async (user) => {
             const isFriend = currentUser.friends.some(id => id.toString() === user._id.toString());
             const requestSent = user.friendRequests.some(id => id.toString() === loggedInUserId.toString());
             
-            // Count messages sent by this user to me that are NOT seen
             const unreadCount = await Message.countDocuments({
                 senderId: user._id,
                 receiverId: loggedInUserId,
@@ -30,42 +29,50 @@ export const getUsersForSidebar = async (req, res) => {
                 ...user.toObject(),
                 isFriend,
                 requestSent,
-                unreadCount // Add count to response
+                unreadCount
             };
         }));
 
 		res.status(200).json(usersWithStatus);
 	} catch (error) {
 		console.error("Error in getUsersForSidebar: ", error.message);
-		res.status(500).json({ error: "Internal server error" });
+		res.status(500).json({ error: "Failed to load users" });
 	}
 };
 
-// ✅ Send Friend Request
 export const sendFriendRequest = async (req, res) => {
 	try {
         const userId = req.user._id;
-		// Sanitize input data
 		const sanitizedBody = mongoSanitize.sanitize(req.body);
 		const { receiverId } = sanitizedBody;
 
+		if (!receiverId) {
+			return res.status(400).json({ error: "Receiver ID is required" });
+		}
+
+		if (receiverId === userId.toString()) {
+			return res.status(400).json({ error: "Cannot send friend request to yourself" });
+		}
+
 		const receiver = await User.findById(receiverId);
+		if (!receiver) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
 		const sender = await User.findById(userId);
 
-		// Check if already friends using .map to compare ObjectIds as strings or use .includes if they are ObjectIds
         const areFriends = receiver.friends.some(friendId => friendId.toString() === userId.toString());
 		if (areFriends) {
-			return res.status(400).json({ error: "Already friends" });
+			return res.status(409).json({ error: "Already friends" });
 		}
         
         const requestSent = receiver.friendRequests.some(reqId => reqId.toString() === userId.toString());
 		if (requestSent) {
-			return res.status(400).json({ error: "Request already sent" });
+			return res.status(409).json({ error: "Request already sent" });
 		}
 
 		await User.findByIdAndUpdate(receiverId, { $push: { friendRequests: userId } });
 
-		// Notify receiver via Socket.IO
 		const receiverSocketId = getReceiverSocketId(receiverId);
 		if (receiverSocketId) {
 			io.to(receiverSocketId).emit("newFriendRequest", {
@@ -76,28 +83,34 @@ export const sendFriendRequest = async (req, res) => {
 			});
 		}
 
-		res.status(200).json({ message: "Friend request sent" });
+		res.status(200).json({ message: "Friend request sent successfully" });
 	} catch (error) {
 		console.error("Send Request Error:", error.message);
-		res.status(500).json({ error: "Internal server error" });
+		res.status(500).json({ error: "Failed to send friend request" });
 	}
 };
 
-// ✅ Accept Friend Request
 export const acceptFriendRequest = async (req, res) => {
 	try {
 		const userId = req.user._id;
         const sanitizedBody = mongoSanitize.sanitize(req.body);
 		const { senderId } = sanitizedBody;
 
-		// Add each other to friends list and remove request
+		if (!senderId) {
+			return res.status(400).json({ error: "Sender ID is required" });
+		}
+
+		const sender = await User.findById(senderId);
+		if (!sender) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
 		await User.findByIdAndUpdate(userId, {
 			$push: { friends: senderId },
 			$pull: { friendRequests: senderId },
 		});
 		await User.findByIdAndUpdate(senderId, { $push: { friends: userId } });
 
-        // Notify the sender that request was accepted
          const senderSocketId = getReceiverSocketId(senderId);
          if (senderSocketId) {
              io.to(senderSocketId).emit("friendRequestAccepted", { _id: userId });
@@ -106,46 +119,53 @@ export const acceptFriendRequest = async (req, res) => {
 		res.status(200).json({ message: "Friend request accepted" });
 	} catch (error) {
 		console.error("Accept Request Error:", error.message);
-		res.status(500).json({ error: "Internal server error" });
+		res.status(500).json({ error: "Failed to accept friend request" });
 	}
 };
 
-// ✅ Reject Friend Request
 export const rejectFriendRequest = async (req, res) => {
 	try {
 		const userId = req.user._id;
         const sanitizedBody = mongoSanitize.sanitize(req.body);
 		const { senderId } = sanitizedBody;
 
+		if (!senderId) {
+			return res.status(400).json({ error: "Sender ID is required" });
+		}
+
 		await User.findByIdAndUpdate(userId, { $pull: { friendRequests: senderId } });
 		res.status(200).json({ message: "Friend request rejected" });
 	} catch (error) {
 		console.error("Reject Request Error:", error.message);
-		res.status(500).json({ error: "Internal server error" });
+		res.status(500).json({ error: "Failed to reject friend request" });
 	}
 };
 
-// ✅ Get Notifications (Friend Requests)
 export const getFriendRequests = async (req, res) => {
 	try {
 		const userId = req.user._id;
 		const user = await User.findById(userId).populate("friendRequests", "username fullName profilePic");
-		res.status(200).json(user.friendRequests);
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
+		res.status(200).json(user.friendRequests || []);
 	} catch (error) {
 		console.error("Get Notifications Error:", error.message);
-		res.status(500).json({ error: "Internal server error" });
+		res.status(500).json({ error: "Failed to load friend requests" });
 	}
 };
 
-//  Get Friend List
 export const getFriends = async (req, res) => {
 	try {
 		const userId = req.user._id;
 		const user = await User.findById(userId).populate("friends", "-password");
-		res.status(200).json(user.friends);
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
+		res.status(200).json(user.friends || []);
 	} catch (error) {
 		console.error("Get Friends Error:", error.message);
-		res.status(500).json({ error: "Internal server error" });
+		res.status(500).json({ error: "Failed to load friends list" });
 	}
 };
 
@@ -154,11 +174,18 @@ export const removeFriend = async (req, res) => {
 		const userId = req.user._id;
 		const { friendId } = req.params;
 
+		if (!friendId) {
+			return res.status(400).json({ error: "Friend ID is required" });
+		}
+
+		const friend = await User.findById(friendId);
+		if (!friend) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
 		await User.findByIdAndUpdate(userId, { $pull: { friends: friendId } });
-        // Also remove from other user
         await User.findByIdAndUpdate(friendId, { $pull: { friends: userId } });
 
-        // Notify the removed friend via Socket.IO
         const friendSocketId = getReceiverSocketId(friendId);
         if (friendSocketId) {
             io.to(friendSocketId).emit("friendRemoved", { _id: userId });
@@ -167,7 +194,7 @@ export const removeFriend = async (req, res) => {
 		res.status(200).json({ message: "Friend removed successfully" });
 	} catch (error) {
 		console.error("Remove Friend Error:", error.message);
-		res.status(500).json({ error: "Internal server error" });
+		res.status(500).json({ error: "Failed to remove friend" });
 	}
 };
 
@@ -178,17 +205,26 @@ export const updateProfile = async (req, res) => {
         const { fullName, username, profilePic, currentPassword, newPassword } = sanitizedBody;
     
         const updateData = {};
-        if (fullName) updateData.fullName = fullName;
-        if (username) updateData.username = username;
+        if (fullName) updateData.fullName = fullName.trim();
+        if (username) {
+			const existingUser = await User.findOne({ username, _id: { $ne: userId } });
+			if (existingUser) {
+				return res.status(409).json({ error: "Username already taken" });
+			}
+			updateData.username = username.trim();
+		}
         if (profilePic) updateData.profilePic = profilePic;
 
-        // Handle password update
         if (currentPassword && newPassword) {
+			if (newPassword.length < 6) {
+				return res.status(400).json({ error: "Password must be at least 6 characters" });
+			}
+
             const user = await User.findById(userId);
             const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
             
             if (!isPasswordCorrect) {
-                return res.status(400).json({ error: "Current password is incorrect" });
+                return res.status(401).json({ error: "Current password is incorrect" });
             }
             
             const salt = await bcrypt.genSalt(10);
@@ -198,12 +234,19 @@ export const updateProfile = async (req, res) => {
         const updatedUser = await User.findByIdAndUpdate(
           userId,
           updateData,
-          { new: true }
+          { new: true, runValidators: true }
         ).select("-password");
+
+		if (!updatedUser) {
+			return res.status(404).json({ error: "User not found" });
+		}
     
         res.status(200).json(updatedUser);
       } catch (err) {
         console.error("Update profile error:", err.message);
-        res.status(500).json({ error: "Internal server error" });
+		if (err.code === 11000) {
+			return res.status(409).json({ error: "Username already exists" });
+		}
+        res.status(500).json({ error: "Failed to update profile" });
       }
 };

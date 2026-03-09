@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import useConversation from "../zustand/useConversation";
 
-const DEFAULT_MODE = "suggest";
+const DEFAULT_MODE = "No Assist";
 
 const useConflictMode = () => {
   const {

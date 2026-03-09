@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useConversation from "../../zustand/useConversation";
 import MessageInput from "./MessageInput";
 import Messages from "./Messages";
@@ -6,7 +6,7 @@ import ConflictResolverPanel from "./ConflictResolverPanel";
 import AIInsightsPanel from "./AIInsightsPanel";
 import { TiMessages } from "react-icons/ti";
 import { useAuthContext } from "../../context/AuthContext";
-import { Phone, Video, Menu } from "lucide-react";
+import { Phone, Video, Menu, Brain, BrainCircuit } from "lucide-react";
 import useConflictMode from "../../hooks/useConflictMode";
 import { useCallContext } from "../../context/CallContext";
 import { useNavigate } from "react-router-dom";
@@ -22,12 +22,17 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
 
   const { authUser } = useAuthContext();
   const { mode, updateMode, loading: conflictModeLoading } = useConflictMode();
+  const [showAIPanel, setShowAIPanel] = useState(false);
+  const [aiInsightsEnabled, setAiInsightsEnabled] = useState(() => {
+    const saved = localStorage.getItem('aiInsightsEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   // New Global Call Logic
   const { startCall, callState } = useCallContext();
   const { callStarted } = callState;
 
-  const showRightPanel = selectedConversation?.isAI || (conflictHints && conflictHints[selectedConversation?._id]);
+  const showRightPanel = (selectedConversation?.isAI && showAIPanel) || (conflictHints && conflictHints[selectedConversation?._id]);
 
   useEffect(() => {
     return () => setSelectedConversation({});
@@ -116,27 +121,68 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
                 )}
             </div>
 
+            {/* AI Insights Toggle (only for AI chat) */}
+            {selectedConversation?.isAI && (
+              <div className="flex items-center gap-2 border-l border-white/10 pl-3 shrink-0">
+                <label className="flex items-center gap-1 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={aiInsightsEnabled}
+                    onChange={(e) => {
+                      setAiInsightsEnabled(e.target.checked);
+                      localStorage.setItem('aiInsightsEnabled', JSON.stringify(e.target.checked));
+                      if (!e.target.checked) setShowAIPanel(false);
+                    }}
+                    className="sr-only"
+                  />
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                    aiInsightsEnabled ? 'bg-blue-500 border-blue-500' : 'border-white/30 group-hover:border-blue-400'
+                  }`}>
+                    {aiInsightsEnabled && (
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-xs text-white/70 group-hover:text-white hidden sm:inline">AI Insights</span>
+                </label>
+                {aiInsightsEnabled && (
+                  <button
+                    onClick={() => setShowAIPanel(!showAIPanel)}
+                    className={`p-2 rounded-lg transition-all ${
+                      showAIPanel ? 'bg-blue-500/30 text-blue-300' : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                    }`}
+                    title={showAIPanel ? "Hide AI Insights" : "Show AI Insights"}
+                  >
+                    <BrainCircuit className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Video/Audio Call Buttons */}
-            <div className="flex items-center gap-3 sm:gap-4 border-l border-white/10 pl-3 sm:pl-4 shrink-0">
-              <button 
-                  onClick={() => handleCall(selectedConversation, false)}
-                  disabled={callStarted}
-                  className={`transition-all duration-200 ${callStarted ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
-              >
-                  <Phone
-                    className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-200 hover:text-green-500"
-                  />
-              </button>
-              <button 
-                  onClick={() => handleCall(selectedConversation, true)}
-                  disabled={callStarted}
-                  className={`transition-all duration-200 ${callStarted ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
-              >
-                  <Video
-                    className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-200 hover:text-cyan-400"
-                  />
-              </button>
-            </div>
+            {!selectedConversation?.isAI && (
+              <div className="flex items-center gap-3 sm:gap-4 border-l border-white/10 pl-3 sm:pl-4 shrink-0">
+                <button 
+                    onClick={() => handleCall(selectedConversation, false)}
+                    disabled={callStarted}
+                    className={`transition-all duration-200 ${callStarted ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
+                >
+                    <Phone
+                      className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-200 hover:text-green-500"
+                    />
+                </button>
+                <button 
+                    onClick={() => handleCall(selectedConversation, true)}
+                    disabled={callStarted}
+                    className={`transition-all duration-200 ${callStarted ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
+                >
+                    <Video
+                      className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-200 hover:text-cyan-400"
+                    />
+                </button>
+              </div>
+            )}
 
             <button
               onClick={() => setSelectedConversation({})}
@@ -169,7 +215,7 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
              {showRightPanel && (
                 <div className="hidden md:flex flex-col w-72 bg-black/20 border-l border-white/10 h-full overflow-hidden">
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
-                        <AIInsightsPanel />
+                        {selectedConversation?.isAI && showAIPanel && aiInsightsEnabled && <AIInsightsPanel />}
                         <ConflictResolverPanel />
                     </div>
                 </div>

@@ -29,7 +29,7 @@ const useLogin = () => {
 		} catch (error) {
 			setshow(true);
 			console.error("Login failed:", error.message);
-			toast.error("Failed to login");
+			toast.error("error.message");
 		} finally {
 			setLoading(false);
 		}

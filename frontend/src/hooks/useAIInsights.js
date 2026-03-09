@@ -12,6 +12,15 @@ const useAIInsights = () => {
   useEffect(() => {
     const conversationId = selectedConversation?._id || null;
     const isAI = selectedConversation?.isAI;
+    const aiInsightsEnabled = localStorage.getItem('aiInsightsEnabled');
+    const isEnabled = aiInsightsEnabled !== null ? JSON.parse(aiInsightsEnabled) : true;
+
+    if (!isEnabled) {
+      setInsights(null);
+      setError("");
+      return;
+    }
+
     if (lastConversationRef.current !== conversationId) {
       lastConversationRef.current = conversationId;
       lastCountRef.current = 0;
