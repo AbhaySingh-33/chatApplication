@@ -2,7 +2,12 @@
 import User from "../models/user.model.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import { sendResetEmail } from "../utils/sendEmail.js";
+import {
+  EmailConfigError,
+  EmailDeliveryError,
+  getClientUrl,
+  sendResetEmail,
+} from "../utils/sendEmail.js";
 
 export const requestPasswordReset = async (req, res) => {
   try {
@@ -24,12 +29,20 @@ export const requestPasswordReset = async (req, res) => {
     user.resetTokenExpiry = expiry;
     await user.save();
 
-    const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
+    const clientUrl = getClientUrl();
+    if (!clientUrl) {
+      throw new EmailConfigError("Missing CLIENT_URL or FRONTEND_URL environment variable");
+    }
+
+    const resetLink = `${clientUrl}/reset-password/${token}`;
     await sendResetEmail(email, resetLink);
 
     res.status(200).json({ message: "Password reset link sent to your email" });
   } catch (err) {
     console.error("Error in requestPasswordReset:", err);
+    if (err instanceof EmailConfigError || err instanceof EmailDeliveryError) {
+      return res.status(503).json({ error: "Unable to send reset email right now. Check email service configuration and try again." });
+    }
     res.status(500).json({ error: "Failed to send reset email. Please try again later" });
   }
 };

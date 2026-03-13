@@ -1,11 +1,9 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useAuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const useSignup = () => {
 	const [loading, setLoading] = useState(false);
-	const { setAuthUser } = useAuthContext();
 	const navigate = useNavigate(); 
 
 	const signup = async ({ fullName, username, password, confirmPassword, email, gender, profilePic }) => {
@@ -35,19 +33,20 @@ const useSignup = () => {
 			});
 
 			const data = await res.json();
-			if (data.error) {
-				throw new Error(data.error);
+			if (!res.ok) {
+				throw new Error(data.error || "Failed to signup");
 			}
 
-			toast.success("Verification link is sent to Yor email!");
-			
+			if (data.emailSent === false) {
+				toast.error(data.message || "Account created but verification email could not be sent yet");
+			} else {
+				toast.success(data.message || "Verification link sent to your email");
+			}
 
-			// Save user data to localStorage and update auth context
-			localStorage.setItem("chat-user", JSON.stringify(data));
-			setAuthUser(data);
+			navigate("/login");
 		} catch (error) {
 			console.error("Signup failed:", error.message);
-			toast.error("Failed to signup");
+			toast.error(error.message || "Failed to signup");
 		} finally {
 			setLoading(false);
 		}

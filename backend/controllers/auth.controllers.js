@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
 import generateTokenAndSetCookie from "../utils/generateToken.js";
 import multer from "multer";  // ye ek middleware hai jo parse karta hai file to uske file name se aur req.file (object me dal deta hai)
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import createCloudinaryStorage from "multer-storage-cloudinary";
 import dotenv from "dotenv";  // ye env me strored variables ko process.env se acces krne me help karta hai
 import mongoSanitize from "express-mongo-sanitize";
 dotenv.config();
@@ -11,7 +11,12 @@ import pkg from "cloudinary";
 const { v2: cloudinary } = pkg;
 
 import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
+import {
+  EmailConfigError,
+  EmailDeliveryError,
+  getClientUrl,
+  sendVerificationEmail,
+} from "../utils/sendEmail.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -20,7 +25,7 @@ cloudinary.config({
 });
 
 // Configure Multer-Cloudinary storage 
-const storage = new CloudinaryStorage({
+const storage = createCloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "profile_pictures",
@@ -83,29 +88,35 @@ export const signup = async (req, res) => {
 
     await newUser.save();
 
+    const clientUrl = getClientUrl();
+    if (!clientUrl) {
+      throw new EmailConfigError("Missing CLIENT_URL or FRONTEND_URL environment variable");
+    }
+
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
-    const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${token}`;
+    const verificationUrl = `${clientUrl}/verify-email/${token}`;
 
-    const transporter = nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+    let emailSent = true;
+
+    try {
+      await sendVerificationEmail({
+        to: email,
+        fullName,
+        verificationLink: verificationUrl,
+      });
+    } catch (emailError) {
+      emailSent = false;
+      console.error("Verification email failed:", emailError);
+    }
+
+    res.status(201).json({
+      message: emailSent
+        ? "Registration successful! Check your email for verification link"
+        : "Registration successful, but we could not send the verification email right now. Please use resend verification after fixing email configuration.",
+      emailSent,
     });
-
-    await transporter.sendMail({
-      from: `"CHATTRIX" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Welcome to ChatApp! Verify your email",
-      html: `<p>Hi ${fullName},</p>
-       <p>Thanks for signing up! Click <a href="${verificationUrl}">here to verify</a> your email address.</p>
-       <p>This link expires in 24 hours.</p>`,
-    });
-
-    res.status(201).json({ message: "Registration successful! Check your email for verification link" });
   } catch (error) {
     console.error("Error in signup controller:", error);
     if (error.name === "ValidationError") {
@@ -152,6 +163,50 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
+export const resendVerificationEmail = async (req, res) => {
+  try {
+    const sanitizedBody = mongoSanitize.sanitize(req.body);
+    const { email } = sanitizedBody;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ error: "Email is already verified" });
+    }
+
+    const clientUrl = getClientUrl();
+    if (!clientUrl) {
+      throw new EmailConfigError("Missing CLIENT_URL or FRONTEND_URL environment variable");
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    const verificationUrl = `${clientUrl}/verify-email/${token}`;
+
+    await sendVerificationEmail({
+      to: user.email,
+      fullName: user.fullName,
+      verificationLink: verificationUrl,
+    });
+
+    res.status(200).json({ message: "Verification email sent successfully" });
+  } catch (error) {
+    console.error("Error in resendVerificationEmail controller:", error);
+    if (error instanceof EmailConfigError || error instanceof EmailDeliveryError) {
+      return res.status(503).json({ error: "Unable to send verification email right now. Check email service configuration and try again." });
+    }
+    res.status(500).json({ error: "Failed to resend verification email" });
+  }
+};
+
 export const login = async (req, res) => {
   try {
     const sanitizedBody = mongoSanitize.sanitize(req.body);
@@ -172,7 +227,11 @@ export const login = async (req, res) => {
     }
 
     if (!user.isVerified) {
-      return res.status(403).json({ error: "Please verify your email before logging in" });
+      return res.status(403).json({
+        error: "Please verify your email before logging in",
+        needsEmailVerification: true,
+        email: user.email,
+      });
     }
 
     generateTokenAndSetCookie(user._id, res);
