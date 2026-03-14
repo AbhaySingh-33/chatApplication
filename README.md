@@ -208,9 +208,17 @@ REDIS_URL=redis://localhost:6379
 # Or use Redis Cloud:
 # REDIS_URL=redis://username:password@redis-xxxxx.cloud.redislabs.com:12345
 
-# Email Configuration (for password reset)
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_gmail_app_password
+# Email Configuration (SMTP / Nodemailer)
+EMAIL_FROM_ADDRESS=ChatApp <no-reply@your-domain.com>
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
+# Optional alternative to SMTP_HOST:
+# SMTP_SERVICE=Gmail
+# Optional fallback provider (used if SMTP fails):
+# BREVO_API_KEY=your_brevo_api_key
 
 # Google Gemini AI Configuration (for AI assistant)
 GEMINI_API_KEY=your_gemini_api_key
@@ -860,8 +868,9 @@ kill -9 <PID>
 **Problem**: Password reset emails not delivered
 
 **Solution**:
-- Enable "Less secure app access" or use App Passwords for Gmail
-- Verify `EMAIL_USER` and `EMAIL_PASS` in `.env`
+- Use an App Password for Gmail/Google Workspace SMTP
+- Verify `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASSWORD` in `.env`
+- Verify `EMAIL_FROM_ADDRESS` is set to a valid sender
 - Check spam folder
 - Review email service console logs
 

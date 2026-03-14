@@ -19,7 +19,7 @@ export const requestPasswordReset = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ error: "No account found with this email" });
+      return res.status(200).json({ message: "If an account exists for this email, a reset link has been sent." });
     }
 
     const token = crypto.randomBytes(32).toString("hex");

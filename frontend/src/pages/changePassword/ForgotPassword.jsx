@@ -16,7 +16,8 @@ const ForgotPassword = () => {
 			toast.success("Reset link sent to your email.");
 			setEmail("");
 		} catch (err) {
-			toast.error("Failed to send reset email. Please try again.");
+			const backendMessage = err?.response?.data?.error || err?.response?.data?.message;
+			toast.error(backendMessage || "Failed to send reset email. Please try again.");
 		} finally {
 			setLoading(false); // End loading
 		}

@@ -54,15 +54,15 @@ export const signup = async (req, res) => {
       return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
 
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(409).json({ error: "Username already taken" });
-    }
+    // const existingUser = await User.findOne({ username });
+    // if (existingUser) {
+    //   return res.status(409).json({ error: "Username already taken" });
+    // }
 
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return res.status(409).json({ error: "Email already registered" });
-    }
+    // const existingEmail = await User.findOne({ email });
+    // if (existingEmail) {
+    //   return res.status(409).json({ error: "Email already registered" });
+    // }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
