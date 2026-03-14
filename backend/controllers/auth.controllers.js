@@ -54,15 +54,15 @@ export const signup = async (req, res) => {
       return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
 
-    // const existingUser = await User.findOne({ username });
-    // if (existingUser) {
-    //   return res.status(409).json({ error: "Username already taken" });
-    // }
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(409).json({ error: "Username already taken" });
+    }
 
-    // const existingEmail = await User.findOne({ email });
-    // if (existingEmail) {
-    //   return res.status(409).json({ error: "Email already registered" });
-    // }
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(409).json({ error: "Email already registered" });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -71,9 +71,8 @@ export const signup = async (req, res) => {
     if (req.file) {
       profilePic = req.file.path;
     } else {
-      const boyProfilePic = `https://avatar.iran.liara.run/public/boy?username=${username}`;
-      const girlProfilePic = `https://avatar.iran.liara.run/public/girl?username=${username}`;
-      profilePic = gender === "male" ? boyProfilePic : girlProfilePic;
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      profilePic = gender === "male" ? `${frontendUrl}/default-man.jpg` : `${frontendUrl}/default-girl.jpg`;
     }
 
     const newUser = new User({
