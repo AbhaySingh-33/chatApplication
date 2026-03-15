@@ -29,7 +29,7 @@ const useLogin = () => {
 		} catch (error) {
 			setshow(true);
 			console.error("Login failed:", error.message);
-			toast.error("error.message");
+			toast.error(getFriendlyError(error.message));
 		} finally {
 			setLoading(false);
 		}
@@ -38,6 +38,13 @@ const useLogin = () => {
 	return { loading, login ,show};
 };
 export default useLogin;
+
+function getFriendlyError(message = "") {
+	if (message.includes("Invalid username or password")) return "Incorrect username or password. Please try again.";
+	if (message.includes("verify your email")) return "Please verify your email before logging in.";
+	if (message.includes("required")) return "Please fill in all fields.";
+	return "Something went wrong. Please try again.";
+}
 
 function handleInputErrors(username, password) {
 	if (!username || !password) {

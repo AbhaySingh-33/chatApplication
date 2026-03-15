@@ -28,7 +28,7 @@ const useReactToMessage = () => {
       updateMessageStatus(updatedMessages);
     } catch (error) {
       console.error("Reaction failed:", error);
-      toast.error("Failed to react to message.");
+      toast.error("Couldn't add reaction. Please try again.");
     } finally {
       setLoading(false);
     }

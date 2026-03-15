@@ -29,11 +29,11 @@ const useGetMessages = () => {
         setMessages(data);
       } catch (error) {
         console.error("Failed to fetch messages:", error.message);
-        if (error.message && error.message.includes("i is not iterable")) {
-          toast.error("An error occurred. Refresh the page");
+        if (error.message?.includes("i is not iterable")) {
+          toast.error("Something went wrong. Please refresh the page.");
           window.location.reload();
         } else {
-          toast.error("Failed to fetch messages");
+          toast.error("Couldn't load messages. Please try again.");
         }
       } finally {
         setLoading(false);

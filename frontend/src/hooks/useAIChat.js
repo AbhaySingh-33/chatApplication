@@ -24,7 +24,7 @@ const useAIChat = () => {
       
     } catch (error) {
       console.error("Failed to send AI message:", error.message);
-      toast.error("Failed to send AI message");
+      toast.error("Couldn't send your message. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ const useAIChat = () => {
       return data;
     } catch (error) {
       console.error("Failed to fetch AI conversation:", error.message);
-      toast.error("Failed to fetch AI conversation");
+      toast.error("Couldn't load AI conversation. Please refresh.");
       return null;
     }
   };
@@ -56,7 +56,7 @@ const useAIChat = () => {
       setMessages(data);
     } catch (error) {
       console.error("Failed to fetch AI messages:", error.message);
-      toast.error("Failed to fetch AI messages");
+      toast.error("Couldn't load AI messages. Please refresh.");
     } finally {
       setLoading(false);
     }

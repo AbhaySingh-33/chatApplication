@@ -26,7 +26,7 @@ const useLogout = () => {
 			clearConversations(); // ✅ Clear cached conversations on logout
 		} catch (error) {
 			console.error("Logout failed:", error.message);
-			toast.error("Failed to logout");
+			toast.error("Couldn't log you out. Please try again.");
 		} finally {
 			setLoading(false);
 		}

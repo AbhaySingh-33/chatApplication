@@ -54,23 +54,25 @@ const useSendMessage = () => {
           if (data.neutralRephrase) {
             setDraftMessage(data.neutralRephrase);
           }
-          toast.error("Message blocked due to conflict tone");
+        toast.error("Message blocked due to conflict tone. Try rephrasing.");
           return;
         }
         throw new Error(data.error || "Failed to send message");
       }
 
       if (data?.moderation?.action === "modified") {
-        toast("Message softened");
+        toast("✏️ Your message was softened for a better tone.", { icon: "💬" });
       }
       setMessages([...messages, data]);
     } catch (error) {
       console.error("Send message failed:", error.message);
-      if (error.message && error.message.includes("i is not iterable")) {
-        toast.error("An error occurred. Refresh the page");
+      if (error.message?.includes("i is not iterable")) {
+        toast.error("Something went wrong. Please refresh the page.");
         window.location.reload();
+      } else if (error.message?.includes("File upload failed")) {
+        toast.error("File upload failed. Please try a different file.");
       } else {
-        toast.error("Failed to send message");
+        toast.error("Couldn't send your message. Please try again.");
       }
     } finally {
       setLoading(false);

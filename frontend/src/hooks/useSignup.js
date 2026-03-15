@@ -46,7 +46,7 @@ const useSignup = () => {
 			navigate("/login");
 		} catch (error) {
 			console.error("Signup failed:", error.message);
-			toast.error(error.message || "Failed to signup");
+			toast.error(getFriendlyError(error.message));
 		} finally {
 			setLoading(false);
 		}
@@ -56,6 +56,14 @@ const useSignup = () => {
 };
 
 export default useSignup;
+
+function getFriendlyError(message = "") {
+	if (message.includes("Username already")) return "That username is already taken. Try a different one.";
+	if (message.includes("Email already")) return "An account with this email already exists.";
+	if (message.includes("Passwords don't match")) return "Passwords do not match. Please check and try again.";
+	if (message.includes("at least 6")) return "Password must be at least 6 characters.";
+	return "Registration failed. Please try again.";
+}
 
 function handleInputErrors({ fullName, username, password, confirmPassword, email, gender }) {
 	if (!fullName || !username || !password || !confirmPassword || !email || !gender) {

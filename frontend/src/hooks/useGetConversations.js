@@ -37,7 +37,7 @@ const useGetConversations = () => {
         setUnreadCounts(initialUnreadMap);
       } catch (error) {
         console.error("Failed to fetch conversations:", error.message);
-        toast.error("Failed to fetch conversations");
+        toast.error("Couldn't load your conversations. Please refresh.");
       } finally {
         setLoading(false);
       }
