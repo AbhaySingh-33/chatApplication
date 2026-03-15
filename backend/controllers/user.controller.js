@@ -4,6 +4,14 @@ import { getReceiverSocketId, io } from "../socket/socket.js";
 import Message from "../models/message.model.js";
 import bcrypt from "bcryptjs";
 
+const getDefaultProfilePic = (gender) => {
+	const maleDefault = process.env.DEFAULT_MAN_PROFILE_PIC
+	const femaleDefault = process.env.DEFAULT_GIRL_PROFILE_PIC
+
+	if (gender === "male") return maleDefault
+	return femaleDefault
+};
+
 export const getUsersForSidebar = async (req, res) => {
 	try {
 		const loggedInUserId = req.user._id;
@@ -202,7 +210,7 @@ export const updateProfile = async (req, res) => {
     try {
         const userId = req.user._id;
         const sanitizedBody = mongoSanitize.sanitize(req.body);
-        const { fullName, username, profilePic, currentPassword, newPassword } = sanitizedBody;
+		const { fullName, username, profilePic, currentPassword, newPassword, removeProfilePic } = sanitizedBody;
     
         const updateData = {};
         if (fullName) updateData.fullName = fullName.trim();
@@ -213,14 +221,40 @@ export const updateProfile = async (req, res) => {
 			}
 			updateData.username = username.trim();
 		}
-        if (profilePic) updateData.profilePic = profilePic;
+
+		let userForFallback = null;
+		const loadUserForFallback = async () => {
+			if (!userForFallback) {
+				userForFallback = await User.findById(userId).select("gender password");
+			}
+			return userForFallback;
+		};
+
+		const shouldResetProfilePic =
+			removeProfilePic === true ||
+			removeProfilePic === "true" ||
+			profilePic === null ||
+			profilePic === "";
+
+		if (shouldResetProfilePic) {
+			const user = await loadUserForFallback();
+			if (!user) {
+				return res.status(404).json({ error: "User not found" });
+			}
+			updateData.profilePic = getDefaultProfilePic(user.gender);
+		} else if (typeof profilePic === "string" && profilePic.trim()) {
+			updateData.profilePic = profilePic.trim();
+		}
 
         if (currentPassword && newPassword) {
 			if (newPassword.length < 6) {
 				return res.status(400).json({ error: "Password must be at least 6 characters" });
 			}
 
-            const user = await User.findById(userId);
+			const user = (await loadUserForFallback()) || (await User.findById(userId));
+			if (!user) {
+				return res.status(404).json({ error: "User not found" });
+			}
             const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
             
             if (!isPasswordCorrect) {

@@ -35,6 +35,14 @@ const storage = createCloudinaryStorage({
 
 const upload = multer({ storage });     //ye ek multer ka middleware hai
 
+const getDefaultProfilePic = (gender) => {
+  const maleDefault = process.env.DEFAULT_MAN_PROFILE_PIC
+  const femaleDefault = process.env.DEFAULT_GIRL_PROFILE_PIC
+
+  if (gender === "male") return maleDefault 
+  return femaleDefault
+};
+
 export const signup = async (req, res) => {
   try {
     // Sanitize input data
@@ -71,8 +79,7 @@ export const signup = async (req, res) => {
     if (req.file) {
       profilePic = req.file.path;
     } else {
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-      profilePic = gender === "male" ? `${frontendUrl}/default-man.jpg` : `${frontendUrl}/default-girl.jpg`;
+      profilePic = getDefaultProfilePic(gender);
     }
 
     const newUser = new User({
