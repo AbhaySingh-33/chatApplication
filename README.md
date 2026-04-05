@@ -693,6 +693,30 @@ CMD ["npm", "start"]
 4. Add environment variables: `railway variables`
 5. Deploy: `railway up`
 
+#### Automated Backend CI/CD to Railway (Recommended)
+
+This repository now includes automated backend CI/CD with GitHub Actions:
+
+1. CI checks run on pull requests affecting `backend/**`
+2. Docker image is built and pushed to Docker Hub on every push to `main`
+3. Backend is deployed to Railway automatically after successful image push
+
+Workflow file:
+
+- `.github/workflows/backend-railway-cicd.yml`
+
+Setup guide:
+
+- `docs/deployment/backend-cicd.md`
+
+Required GitHub Actions secrets:
+
+1. `DOCKERHUB_USERNAME`
+2. `DOCKERHUB_TOKEN`
+3. `RAILWAY_TOKEN`
+4. `RAILWAY_SERVICE`
+5. `RAILWAY_ENVIRONMENT` (optional, defaults to `production`)
+
 #### Deploying to Heroku
 
 ```bash
