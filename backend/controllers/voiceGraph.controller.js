@@ -1,34 +1,21 @@
 import VoiceSession from "../models/voiceSession.model.js";
-import axios from "axios";
+import { chatWithMistral, hasMistralApiKey } from "../utils/mistralClient.js";
 
-// Helper to call Gemini
-const callGemini = async (prompt) => {
+// Helper to call Mistral
+const callMistral = async (prompt) => {
 	try {
-		const API_KEY = process.env.GEMINI_API_KEY;
-		if (!API_KEY) {
-			console.error("GEMINI_API_KEY is missing");
+        if (!hasMistralApiKey()) {
+            console.error("MISTRAL_API_KEY is missing");
 			return null;
 		}
 
-		const response = await axios.post(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`,
-			{
-				contents: [
-					{
-						role: "user",
-						parts: [{ text: prompt }],
-					},
-				],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                }
-			}
-		);
+        const responseText = await chatWithMistral({
+            prompt,
+            jsonMode: true,
+            temperature: 0.1,
+        });
 
-		if (response.data && response.data.candidates && response.data.candidates.length > 0) {
-			return response.data.candidates[0].content.parts[0].text;
-		}
-		return null;
+        return responseText || null;
 	} catch (error) {
 		console.error("AI Error:", error?.response?.data || error.message);
 		return null;
@@ -87,7 +74,7 @@ export const updateTranscript = async (req, res) => {
         }
         `;
 
-        const aiResponse = await callGemini(prompt);
+        const aiResponse = await callMistral(prompt);
         let graphData = session.knowledgeGraph;
 
         if (aiResponse) {
@@ -156,7 +143,7 @@ export const queryKnowledgeGraph = async (req, res) => {
         Answer the question based on the context provided.
         `;
 
-        const answer = await callGemini(prompt);
+        const answer = await callMistral(prompt);
         res.status(200).json({ answer: answer || "I couldn't generate an answer." });
 
     } catch (error) {

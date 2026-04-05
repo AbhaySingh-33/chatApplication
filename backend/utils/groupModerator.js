@@ -1,4 +1,4 @@
-import axios from "axios";
+import { chatWithMistral, hasMistralApiKey } from "./mistralClient.js";
 
 const TOXIC_KEYWORDS = [
   "stupid",
@@ -127,26 +127,17 @@ const buildPrompt = ({ text, topic }) => {
 };
 
 const analyzeWithAI = async ({ text, topic }) => {
-  if (!process.env.GEMINI_API_KEY) return null;
+  if (!hasMistralApiKey()) return null;
   if (!text || text.trim().length < 6) return null;
 
-  console.log("🤖 Calling Gemini API for message analysis...");
+  console.log("Calling Mistral API for message analysis...");
 
   const prompt = buildPrompt({ text, topic });
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }],
-        },
-      ],
-    }
-  );
-
-  const raw =
-    response?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const raw = await chatWithMistral({
+    prompt,
+    jsonMode: true,
+    temperature: 0.2,
+  });
   const parsed = safeParseJson(raw);
   if (!parsed) return null;
 
@@ -179,7 +170,7 @@ export const evaluateGroupMessage = async ({
 }) => {
   const heuristic = computeHeuristicScores(text);
   const ai =
-    aiEnabled && process.env.GEMINI_API_KEY
+    aiEnabled && hasMistralApiKey()
       ? await analyzeWithAI({ text, topic: groupTopic })
       : null;
 

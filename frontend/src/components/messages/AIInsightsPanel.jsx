@@ -32,7 +32,7 @@ const AIInsightsPanel = () => {
   if (error) {
     return (
       <div className="mx-2 mt-2 rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-red-100 text-xs">
-        Failed to load insights. Check backend logs and `GEMINI_API_KEY`.
+        Failed to load insights. Check backend logs and MISTRAL_API_KEY.
       </div>
     );
   }

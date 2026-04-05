@@ -1,5 +1,5 @@
-import axios from "axios";
 import Message from "../models/message.model.js";
+import { chatWithMistral, hasMistralApiKey } from "./mistralClient.js";
 
 const CONFLICT_KEYWORDS = [
   "stupid",
@@ -126,7 +126,7 @@ const analyzeConflict = async ({
   applyCooldown,
 }) => {
   if (!draftText) return null;
-  if (!process.env.GEMINI_API_KEY) return null;
+  if (!hasMistralApiKey()) return null;
 
   const pairKey = [String(senderId), String(receiverId)].sort().join(":");
   if (applyCooldown) {
@@ -156,20 +156,11 @@ const analyzeConflict = async ({
   if (!shouldAnalyzeConflict(messagesForCheck)) return null;
 
   const prompt = buildPrompt(messagesForCheck, latestMessageId || "draft");
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }],
-        },
-      ],
-    }
-  );
-
-  const text =
-    response?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const text = await chatWithMistral({
+    prompt,
+    jsonMode: true,
+    temperature: 0.2,
+  });
   const parsed = safeParseJson(text);
   if (!parsed || !parsed.isConflict) return null;
 

@@ -28,7 +28,7 @@ A professional, full-stack real-time chat application built with cutting-edge te
 - **🌐 Online Status**: Real-time online/offline user presence indicators
 
 ### 💡 Advanced Features
-- **🤖 AI Assistant**: Integrated Google Gemini AI for intelligent chat assistance and conversation support
+- **🤖 AI Assistant**: Integrated Mistral AI for intelligent chat assistance and conversation support
 - **📹 Video & Audio Calls**: WebRTC-powered peer-to-peer video and audio calling with SimplePeer
 - **📎 Media Sharing**: Image and file uploads with Cloudinary integration for optimized storage
 - **💬 Message Reactions**: React to messages with emojis (❤️, 👍, 😂, etc.)
@@ -63,7 +63,7 @@ A professional, full-stack real-time chat application built with cutting-edge te
 | **Database** | MongoDB with Mongoose 8.12+ | NoSQL database with elegant schema modeling |
 | **Real-time** | Socket.io 4.8+ | Bidirectional event-based communication |
 | **Caching** | Redis 4.6+ | In-memory data structure store for scalability |
-| **AI Integration** | Google Gemini API | Advanced AI-powered chat assistant |
+| **AI Integration** | Mistral API | Advanced AI-powered chat assistant |
 | **Authentication** | JWT + bcryptjs | Secure token-based authentication |
 | **File Storage** | Cloudinary + Multer | Cloud-based media storage and handling |
 | **Email Service** | Nodemailer 7.0+ | Email sending for verification and password reset |
@@ -127,7 +127,7 @@ A professional, full-stack real-time chat application built with cutting-edge te
      └──────────────┘ └──────────┘  └─────────────┘
              │
      ┌───────▼──────────┐
-     │  Google Gemini   │
+    │     Mistral      │
      │    AI Service    │
      └──────────────────┘
 ```
@@ -139,7 +139,7 @@ A professional, full-stack real-time chat application built with cutting-edge te
 - **WebSocket (Socket.io)**: Real-time bidirectional communication
 - **Database (MongoDB)**: Document-based storage for users, messages, and conversations
 - **Cache (Redis)**: Session management and Socket.io adapter for horizontal scaling
-- **AI Service**: Google Gemini API integration for intelligent responses
+- **AI Service**: Mistral API integration for intelligent responses
 - **Media Storage**: Cloudinary CDN for optimized image delivery
 
 ---
@@ -157,7 +157,7 @@ Before you begin, ensure you have the following installed on your system:
 ### Additional Requirements
 
 - **Cloudinary Account** (free tier available) - [Sign up](https://cloudinary.com/users/register/free)
-- **Google Gemini API Key** (for AI features) - [Get API Key](https://makersuite.google.com/app/apikey)
+- **Mistral API Key** (for AI features) - [Get API Key](https://console.mistral.ai/)
 - **Gmail Account** (for email features, with App Password enabled) - [Setup Guide](https://support.google.com/accounts/answer/185833)
 
 ---
@@ -220,8 +220,10 @@ SMTP_PASSWORD=your_gmail_app_password
 # Optional fallback provider (used if SMTP fails):
 # BREVO_API_KEY=your_brevo_api_key
 
-# Google Gemini AI Configuration (for AI assistant)
-GEMINI_API_KEY=your_gemini_api_key
+# Mistral AI Configuration (for AI assistant)
+MISTRAL_API_KEY=your_mistral_api_key
+# Optional model override
+# MISTRAL_MODEL=mistral-small-latest
 ```
 
 ### Step 3: Frontend Configuration
@@ -849,9 +851,9 @@ kill -9 <PID>
 **Problem**: AI returns error messages
 
 **Solution**:
-- Verify `GEMINI_API_KEY` is set correctly in `.env`
-- Check API quota limits on Google AI Studio
-- Ensure the model name is correct (currently: `gemini-flash-latest`)
+- Verify `MISTRAL_API_KEY` is set correctly in `.env`
+- Check API quota limits on your Mistral account
+- If needed, set `MISTRAL_MODEL` in `.env` (default: `mistral-small-latest`)
 
 #### WebRTC Video Call Not Working
 
@@ -1027,7 +1029,7 @@ PERFORMANCE OF THIS SOFTWARE.
 - [React](https://reactjs.org/) for the amazing UI library
 - [TailwindCSS](https://tailwindcss.com/) for the utility-first CSS framework
 - [Cloudinary](https://cloudinary.com/) for media storage
-- [Google Gemini](https://deepmind.google/technologies/gemini/) for AI capabilities
+- [Mistral AI](https://mistral.ai/) for AI capabilities
 - All open-source contributors and maintainers
 
 ---

@@ -4,55 +4,31 @@ import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import mongoSanitize from "express-mongo-sanitize";
-import axios from "axios";
 import { updateAIInsightsForConversation } from "../utils/aiInsights.js";
+import { chatWithMistral, hasMistralApiKey } from "../utils/mistralClient.js";
 
 // Placeholder for AI response
 const getAIResponse = async (userMessage) => {
   try {
-    const API_KEY = process.env.GEMINI_API_KEY;
-    if (!API_KEY) {
-        return "Please configure the GEMINI_API_KEY in your .env file.";
+    if (!hasMistralApiKey()) {
+        return "Please configure MISTRAL_API_KEY in your .env file.";
     }
 
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`,
-      {
-        contents: [
-            {
-                role: "user",
-                parts: [{ text: userMessage }]
-            }
-        ]
-      }
-    );
+    const responseText = await chatWithMistral({
+      prompt: userMessage,
+      systemPrompt:
+        "You are a concise and helpful AI assistant in a real-time chat app.",
+      temperature: 0.7,
+    });
 
-    if (response.data && response.data.candidates && response.data.candidates.length > 0) {
-        return response.data.candidates[0].content.parts[0].text;
-    } else {
-        return "I'm not sure how to respond to that.";
-    }
+    return responseText || "I'm not sure how to respond to that.";
 
   } catch (error) {
     console.error("AI Response Error:", error?.response?.data || error.message);
-    
-    // Attempt to list available models to help debug "Model not found" errors
-    if (error.response?.status === 404 || (error.response?.data?.error?.message && error.response.data.error.message.includes("not found"))) {
-        try {
-            const listRes = await axios.get(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
-            const availableModels = listRes.data.models
-                .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"))
-                .map(m => m.name.replace("models/", ""))
-                .join(", ");
-            return `AI Error: Model not found. Your key has access to: ${availableModels}`;
-        } catch (listError) {
-             return `AI Error: Model not found and could not list available models.`;
-        }
-    }
 
     // Return specific error message
     if (error.response && error.response.data && error.response.data.error) {
-        return `AI Error: ${error.response.data.error.message}`;
+        return `AI Error: ${error.response.data.error.message || "Mistral request failed"}`;
     }
     
     return "Sorry, I encountered an error processing your message. Please try again later.";

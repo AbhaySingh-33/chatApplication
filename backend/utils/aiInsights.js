@@ -1,6 +1,6 @@
-import axios from "axios";
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { chatWithMistral, hasMistralApiKey } from "./mistralClient.js";
 
 const INSIGHT_STALE_MS = 5 * 60 * 1000;
 const MAX_MESSAGES = 30;
@@ -136,7 +136,7 @@ export const updateAIInsightsForConversation = async ({
     }
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!hasMistralApiKey()) {
     return existing ? { insights: existing, messageTags: [], cached: true } : null;
   }
 
@@ -160,20 +160,11 @@ export const updateAIInsightsForConversation = async ({
   }
 
   const prompt = buildPrompt(messages, userId);
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }],
-        },
-      ],
-    }
-  );
-
-  const text =
-    response?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const text = await chatWithMistral({
+    prompt,
+    jsonMode: true,
+    temperature: 0.2,
+  });
   const parsed = safeParseJson(text);
   if (!parsed) return null;
 
