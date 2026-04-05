@@ -110,7 +110,7 @@ export const sendAIMessage = async (req, res) => {
         profilePic: "https://avatar.iran.liara.run/public/job/operator/male",
     };
 
-    // Simulate thinking time
+    // Simulate thinking time --
     setTimeout(async () => {
         const aiMessage = new Message({
           senderId: AI_USER_ID,
