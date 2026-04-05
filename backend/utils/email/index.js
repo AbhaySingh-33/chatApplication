@@ -1,9 +1,15 @@
 import { EmailConfigError, EmailDeliveryError } from "./errors.js";
-import { EMAIL_TIMEOUT_MS, getTransporters, getDefaultFromAddress } from "./transporter.js";
+import { EMAIL_TIMEOUT_MS, getTransporters } from "./transporter.js";
 import { verificationTemplate, resetPasswordTemplate } from "./templates.js";
 
 export { EmailConfigError, EmailDeliveryError } from "./errors.js";
-export { getTransporter, getTransporters, createSmtpTransporter, createBrevoTransporter } from "./transporter.js";
+export {
+	getTransporter,
+	getTransporters,
+	createAppwriteTransporter,
+	createSmtpTransporter,
+	createBrevoTransporter,
+} from "./transporter.js";
 
 export const getClientUrl = () => process.env.CLIENT_URL || process.env.FRONTEND_URL;
 
@@ -22,12 +28,15 @@ export const sendEmail = async ({ to, subject, html }) => {
 
 		for (const { provider, transporter } of activeTransporters) {
 			try {
-				await withTimeout(
-					transporter.sendMail({ from: getDefaultFromAddress(), to, subject, html }),
+				const result = await withTimeout(
+					transporter.sendMail({ to, subject, html }),
 					EMAIL_TIMEOUT_MS,
 					`Email delivery timed out after ${EMAIL_TIMEOUT_MS}ms`
 				);
-				console.info(`[email] Delivered via ${provider}; to=${Array.isArray(to) ? to.join(",") : to}; subject=${subject}`);
+				const outcome = result?.response || "accepted";
+				console.info(
+					`[email] ${outcome} via ${provider}; to=${Array.isArray(to) ? to.join(",") : to}; subject=${subject}`
+				);
 				return;
 			} catch (providerError) {
 				lastError = new EmailDeliveryError(

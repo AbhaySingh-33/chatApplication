@@ -24,7 +24,7 @@ A professional, full-stack real-time chat application built with cutting-edge te
 - **⚡ Real-Time Messaging**: Instant message delivery using Socket.io with Redis adapter for horizontal scalability across multiple servers
 - **🔐 Secure Authentication**: JWT-based authentication with bcrypt password hashing and HTTP-only cookies
 - **👥 User Management**: Complete user profiles with avatar uploads and status tracking
-- **📧 Email Verification**: Email verification for new accounts and password reset functionality via Nodemailer
+- **📧 Email Verification**: Email verification for new accounts and password reset via Appwrite Messaging
 - **🌐 Online Status**: Real-time online/offline user presence indicators
 
 ### 💡 Advanced Features
@@ -66,7 +66,7 @@ A professional, full-stack real-time chat application built with cutting-edge te
 | **AI Integration** | Mistral API | Advanced AI-powered chat assistant |
 | **Authentication** | JWT + bcryptjs | Secure token-based authentication |
 | **File Storage** | Cloudinary + Multer | Cloud-based media storage and handling |
-| **Email Service** | Nodemailer 7.0+ | Email sending for verification and password reset |
+| **Email Service** | Appwrite Messaging | Transactional email delivery for verification and password reset |
 | **Security** | express-mongo-sanitize, CORS | Protection against injection and cross-origin attacks |
 
 ### Frontend Technologies
@@ -208,17 +208,14 @@ REDIS_URL=redis://localhost:6379
 # Or use Redis Cloud:
 # REDIS_URL=redis://username:password@redis-xxxxx.cloud.redislabs.com:12345
 
-# Email Configuration (SMTP / Nodemailer)
+# Email Configuration (Appwrite Messaging)
+APPWRITE_ENDPOINT=https://<REGION>.cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=your_appwrite_project_id
+APPWRITE_API_KEY=your_appwrite_server_api_key
+# Optional: lock delivery to a specific Appwrite email provider
+APPWRITE_EMAIL_PROVIDER_ID=smtp-main
 EMAIL_FROM_ADDRESS=ChatApp <no-reply@your-domain.com>
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_gmail_app_password
-# Optional alternative to SMTP_HOST:
-# SMTP_SERVICE=Gmail
-# Optional fallback provider (used if SMTP fails):
-# BREVO_API_KEY=your_brevo_api_key
+EMAIL_TIMEOUT_MS=10000
 
 # Mistral AI Configuration (for AI assistant)
 MISTRAL_API_KEY=your_mistral_api_key
@@ -870,9 +867,10 @@ kill -9 <PID>
 **Problem**: Password reset emails not delivered
 
 **Solution**:
-- Use an App Password for Gmail/Google Workspace SMTP
-- Verify `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASSWORD` in `.env`
-- Verify `EMAIL_FROM_ADDRESS` is set to a valid sender
+- Verify `APPWRITE_ENDPOINT`, `APPWRITE_PROJECT_ID`, and `APPWRITE_API_KEY` in `.env`
+- Ensure at least one email provider is configured in Appwrite Messaging
+- If set, confirm `APPWRITE_EMAIL_PROVIDER_ID` matches an existing provider in Appwrite
+- Verify `EMAIL_FROM_ADDRESS` is set to a valid sender identity
 - Check spam folder
 - Review email service console logs
 
