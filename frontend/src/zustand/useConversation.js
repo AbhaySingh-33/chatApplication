@@ -1,5 +1,20 @@
 import { create } from "zustand";
 
+const toTimestamp = (value) => {
+    const time = new Date(value).getTime();
+    return Number.isFinite(time) ? time : 0;
+};
+
+const sortMessagesByCreatedAt = (messages = []) =>
+    [...messages].sort((a, b) => {
+        const aTime = toTimestamp(a?.createdAt);
+        const bTime = toTimestamp(b?.createdAt);
+        if (aTime === bTime) {
+            return String(a?._id || "").localeCompare(String(b?._id || ""));
+        }
+        return aTime - bTime;
+    });
+
 const useConversation = create((set) => ({
     messages: [],
     selectedConversation: {}, // ✅ Set default as an empty object instead of `null`
@@ -43,6 +58,22 @@ const useConversation = create((set) => ({
     setreceiver: (receiver) => set({ receiver }),
 
     setMessages: (messages) => set({ messages }),
+
+    upsertMessage: (message) =>
+        set((state) => {
+            if (!message?._id) {
+                return { messages: sortMessagesByCreatedAt([...state.messages, message]) };
+            }
+
+            const existingIndex = state.messages.findIndex((msg) => msg._id === message._id);
+            if (existingIndex >= 0) {
+                const nextMessages = [...state.messages];
+                nextMessages[existingIndex] = { ...nextMessages[existingIndex], ...message };
+                return { messages: sortMessagesByCreatedAt(nextMessages) };
+            }
+
+            return { messages: sortMessagesByCreatedAt([...state.messages, message]) };
+        }),
 
     updateMessageStatus: (messageId, status) =>
         set((state) => ({

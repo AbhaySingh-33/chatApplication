@@ -19,7 +19,7 @@ const AIAssistant = () => {
         _id: "65c0c0c0c0c0c0c0c0c0c0c0", // Matches backend AI ObjectId
         username: "AI Assistant",
         fullName: "AI Assistant",
-        profilePic: "https://avatar.iran.liara.run/public/job/operator/male", // Use a generic avatar
+        profilePic: "https://res.cloudinary.com/dkdpddzac/image/upload/v1775475390/bq8crhk7qmzgli5vcqww.jpg",
         isAI: true,
       });
       

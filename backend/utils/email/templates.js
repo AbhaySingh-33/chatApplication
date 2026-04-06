@@ -76,8 +76,7 @@ export const verificationTemplate = ({ fullName, to, verificationLink }) => {
       <div style="text-align:center;margin:0 0 20px;">
         <a href="${safeLink}" style="${CTA_BASE_STYLE}background:linear-gradient(135deg,#0f766e,#155e75);">Verify Email Address</a>
       </div>
-      <p style="margin:0 0 8px;font-size:13px;color:#475569;line-height:1.7;">This verification link expires in 24 hours.</p>
-      <p style="margin:0;font-size:12px;color:#64748b;line-height:1.7;word-break:break-all;">If the button does not work, copy and paste this URL into your browser:<br/>${safeLink}</p>`,
+      <p style="margin:0 0 8px;font-size:13px;color:#475569;line-height:1.7;">This verification link expires in 24 hours.</p>`,
 	});
 };
 
@@ -103,7 +102,6 @@ export const resetPasswordTemplate = ({ resetLink }) => {
       <div style="text-align:center;margin:0 0 20px;">
         <a href="${safeLink}" style="${CTA_BASE_STYLE}background:linear-gradient(135deg,#991b1b,#b91c1c);">Reset Password</a>
       </div>
-      <p style="margin:0 0 8px;font-size:13px;color:#475569;line-height:1.7;">For security, this link expires in 15 minutes.</p>
-      <p style="margin:0;font-size:12px;color:#64748b;line-height:1.7;word-break:break-all;">If the button does not work, copy and paste this URL into your browser:<br/>${safeLink}</p>`,
+      <p style="margin:0 0 8px;font-size:13px;color:#475569;line-height:1.7;">For security, this link expires in 15 minutes.</p>`,
 	});
 };

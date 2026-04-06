@@ -78,12 +78,20 @@ app.get("*", (req, res) => {
 	}
 });
 
-// Ensure MongoDB is connected before starting the server
-server.listen(PORT, async () => {
-	await connectToMongoDB(); // Connect to MongoDB
-	await initializeRedis(); // Initialize Redis for Socket.IO adapter (optional)
-	console.log(`Server Running on port ${PORT}`);
-});
+const startServer = async () => {
+	try {
+		await connectToMongoDB();
+		await initializeRedis();
+		server.listen(PORT, () => {
+			console.log(`Server Running on port ${PORT}`);
+		});
+	} catch (error) {
+		console.error("Failed to start server due to initialization error:", error.message);
+		process.exit(1);
+	}
+};
+
+startServer();
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {

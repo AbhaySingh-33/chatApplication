@@ -1,8 +1,13 @@
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import User from "../models/user.model.js";
 
 const protectRoute = async (req, res, next) => {
 	try {
+		if (mongoose.connection.readyState !== 1) {
+			return res.status(503).json({ error: "Database unavailable. Please try again shortly." });
+		}
+
 		const token = req.cookies.jwt;
 
 		if (!token) {

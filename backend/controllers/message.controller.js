@@ -329,3 +329,40 @@ export const deleteMessage = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+export const clearConversationMessages = async (req, res) => {
+    try {
+        const { id: userToChatId } = req.params;
+        const senderId = req.user._id;
+
+        const conversation = await Conversation.findOne({
+            participants: { $all: [senderId, userToChatId] },
+        });
+
+        if (!conversation) {
+            return res.status(200).json({ message: "Conversation already empty" });
+        }
+
+        const messageIds = conversation.messages || [];
+        if (messageIds.length > 0) {
+            await Message.deleteMany({ _id: { $in: messageIds } });
+        }
+
+        conversation.messages = [];
+        await conversation.save();
+
+        const filteredUser = await User.findById(senderId).select("-password");
+        const RfilteredUser = await User.findById(userToChatId).select("-password");
+
+        const receiverSocketId = getReceiverSocketId(userToChatId);
+        const senderSocketId = getReceiverSocketId(senderId);
+
+        if (receiverSocketId) io.to(receiverSocketId).emit("messageDeleted", [], filteredUser, RfilteredUser);
+        if (senderSocketId) io.to(senderSocketId).emit("messageDeleted", [], filteredUser, RfilteredUser);
+
+        res.status(200).json({ message: "Conversation cleared successfully" });
+    } catch (error) {
+        console.error("Error in clearConversationMessages:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};

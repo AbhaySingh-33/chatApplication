@@ -7,7 +7,7 @@ import { useAuthContext } from "../context/AuthContext";
 const useListenMessages = () => {
     const { socket } = useSocketContext();
     const { authUser } = useAuthContext();
-    const { messages, setMessages, selectedConversation, incrementUnreadMessages,
+    const { setMessages, selectedConversation, incrementUnreadMessages,
             setTypingStatus,updateMessageStatus,updateAllMessageStatuses,updateMessageReactions, setConflictHint, conflictModes } = useConversation();
 
             useEffect(() => {
@@ -18,8 +18,8 @@ const useListenMessages = () => {
                     
                     if (!filteredUser) return; // Safeguard against undefined user
         
-                    if (selectedConversation._id === filteredUser._id) {
-                        setMessages([...messages, newMessage]);
+                    if (selectedConversation?._id === filteredUser._id) {
+                        useConversation.getState().upsertMessage(newMessage);
                          // Send messageSeen event when a message is received
                     socket.emit("messageSeen", { messageId: newMessage._id, senderId: newMessage.senderId });
                     } else {
@@ -33,7 +33,7 @@ const useListenMessages = () => {
                 return () => {
                     socket?.off("newMessage");
                 };
-            }, [socket, setMessages, messages, selectedConversation, incrementUnreadMessages]);
+            }, [socket, setMessages, selectedConversation, incrementUnreadMessages]);
 
     useEffect(() => {
         if (!socket) return;
@@ -115,7 +115,7 @@ const useListenMessages = () => {
     
     useEffect(() => {
         socket?.on("messageDeleted", (updatedMessages,filteredUser,RfilteredUser) => {
-            if (selectedConversation._id === filteredUser._id || selectedConversation._id === RfilteredUser._id) {
+            if (selectedConversation?._id === filteredUser?._id || selectedConversation?._id === RfilteredUser?._id) {
                 setMessages(updatedMessages);
             }
         });

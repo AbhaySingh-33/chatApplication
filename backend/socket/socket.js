@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import mongoose from "mongoose";
 import Message from "../models/message.model.js";
 import Group from "../models/group.model.js";
 import { createAdapter } from "@socket.io/redis-adapter";
@@ -145,13 +146,29 @@ socket.on("call:rejected", ({ to, from }) => {
   if (userId && userId !== "undefined") {
     userSocketMap[userId] = socket.id;
 
+    const joinUserGroups = async () => {
+      const groups = await Group.find({ members: userId }).select("_id");
+      groups.forEach((g) => socket.join(`group:${g._id.toString()}`));
+    };
+
     // Auto-join user to all their groups for real-time updates
-    Group.find({ members: userId })
-      .select("_id")
-      .then((groups) => {
-        groups.forEach((g) => socket.join(`group:${g._id.toString()}`));
-      })
-      .catch((err) => console.error("Auto-join groups error:", err));
+    if (mongoose.connection.readyState === 1) {
+      joinUserGroups().catch((err) => console.error("Auto-join groups error:", err));
+    } else {
+      console.warn("Auto-join groups skipped: MongoDB not connected");
+
+      // If Mongo reconnects after this socket connects, join groups then.
+      const handleMongoConnected = () => {
+        if (!socket.connected) return;
+        joinUserGroups().catch((err) => console.error("Auto-join groups retry error:", err));
+      };
+
+      mongoose.connection.once("connected", handleMongoConnected);
+
+      socket.on("disconnect", () => {
+        mongoose.connection.off("connected", handleMongoConnected);
+      });
+    }
   }
 
   // Notify all clients about online users

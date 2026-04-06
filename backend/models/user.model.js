@@ -38,6 +38,27 @@ const userSchema = new mongoose.Schema(
 		},
 		friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 		friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Added friendRequests field
+		aiMemory: {
+			summary: { type: String, default: "" },
+			preferences: [{ type: String }],
+			goals: [{ type: String }],
+			lastTopics: [{ type: String }],
+			updatedAt: { type: Date, default: null },
+		},
+		ragContext: {
+			hasIngestedDocs: { type: Boolean, default: false },
+			lastIngestedAt: { type: Date, default: null },
+			sources: [
+				{
+					sourceId: { type: String, required: true },
+					type: { type: String, enum: ["pdf", "web"], required: true },
+					name: { type: String, required: true },
+					chunksAdded: { type: Number, default: 0 },
+					namespace: { type: String, default: "" },
+					ingestedAt: { type: Date, default: Date.now },
+				},
+			],
+		},
 		
 		 resetToken: String, 
   		 resetTokenExpiry: Date, 

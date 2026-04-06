@@ -221,6 +221,20 @@ EMAIL_TIMEOUT_MS=10000
 MISTRAL_API_KEY=your_mistral_api_key
 # Optional model override
 # MISTRAL_MODEL=mistral-small-latest
+
+# Pinecone + RAG Configuration (for PDF/Web Retrieval)
+PINECONE_API_KEY=your_pinecone_api_key
+PINECONE_INDEX=your_existing_pinecone_index_name
+# Optional namespace prefix (per-user isolation)
+# PINECONE_NAMESPACE_PREFIX=user
+# Optional RAG tuning (latency vs quality)
+# RAG_TOP_K=4
+# RAG_CHUNK_SIZE=900
+# RAG_CHUNK_OVERLAP=120
+# RAG_MAX_CONTEXT_CHARS=7000
+# RAG_WEB_SEARCH_RESULTS=3
+# RAG_CRAWL_MAX_PAGES=8
+# RAG_CRAWL_TIMEOUT_MS=8000
 ```
 
 ### Step 3: Frontend Configuration
@@ -258,6 +272,16 @@ If you have Redis installed locally:
 ```bash
 redis-server
 ```
+
+### RAG Ingestion APIs (JavaScript-only)
+
+The AI chat now supports RAG with Pinecone + LangChain + LangGraph + DuckDuckGo fallback search.
+
+- `GET /api/ai-chat/rag/health` → Check if RAG env is configured
+- `POST /api/ai-chat/rag/upload-pdf` → Upload a PDF using multipart form-data with field name `pdf`
+- `POST /api/ai-chat/rag/crawl` → Crawl and ingest docs from a URL body like `{ "url": "https://example.com/docs", "maxPages": 6 }`
+
+These routes are protected and ingest into a per-user namespace in Pinecone.
 
 ### Step 5: Verify Installation
 

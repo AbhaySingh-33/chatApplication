@@ -6,12 +6,12 @@ import { uploadToCloudinary } from "../utils/upload";
 
 const useSendMessage = () => {
   const [loading, setLoading] = useState(false);
+  const [clearingConversation, setClearingConversation] = useState(false);
   const {
-    messages,
-    setMessages,
     selectedConversation,
     setConflictHint,
     setDraftMessage,
+    setMessages,
   } = useConversation();
 
   const sendMessage = async ({ text, file, replyTo }) => {
@@ -63,7 +63,7 @@ const useSendMessage = () => {
       if (data?.moderation?.action === "modified") {
         toast("✏️ Your message was softened for a better tone.", { icon: "💬" });
       }
-      setMessages([...messages, data]);
+      useConversation.getState().upsertMessage(data);
     } catch (error) {
       console.error("Send message failed:", error.message);
       if (error.message?.includes("i is not iterable")) {
@@ -98,7 +98,37 @@ const useSendMessage = () => {
     }
   };
 
-  return { sendMessage, loading, deleteMessage };
+  const clearConversationMessages = async () => {
+    if (!selectedConversation?._id) return false;
+
+    setClearingConversation(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/messages/clear/${selectedConversation._id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok || data?.error) {
+        throw new Error(data?.error || "Failed to clear conversation");
+      }
+
+      setMessages([]);
+      toast.success("Conversation cleared");
+      return true;
+    } catch (error) {
+      console.error("Error clearing conversation:", error.message);
+      toast.error(error.message || "Couldn't clear conversation.");
+      return false;
+    } finally {
+      setClearingConversation(false);
+    }
+  };
+
+  return { sendMessage, loading, deleteMessage, clearConversationMessages, clearingConversation };
 };
 
 export default useSendMessage;

@@ -6,10 +6,11 @@ import ConflictResolverPanel from "./ConflictResolverPanel";
 import AIInsightsPanel from "./AIInsightsPanel";
 import { TiMessages } from "react-icons/ti";
 import { useAuthContext } from "../../context/AuthContext";
-import { Phone, Video, Menu, Brain, BrainCircuit } from "lucide-react";
+import { Phone, Video, Menu, Brain, BrainCircuit, Trash2 } from "lucide-react";
 import useConflictMode from "../../hooks/useConflictMode";
 import { useCallContext } from "../../context/CallContext";
 import { useNavigate } from "react-router-dom";
+import useSendMessage from "../../hooks/useSendMessage";
 
 const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
   const {
@@ -22,6 +23,7 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
 
   const { authUser } = useAuthContext();
   const { mode, updateMode, loading: conflictModeLoading } = useConflictMode();
+  const { clearConversationMessages, clearingConversation } = useSendMessage();
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [aiInsightsEnabled, setAiInsightsEnabled] = useState(() => {
     const saved = localStorage.getItem('aiInsightsEnabled');
@@ -43,6 +45,12 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
   const handleCall = (receiver, isVideo = false) => {
     if (callStarted) return;
     startCall(receiver, isVideo);
+  };
+
+  const handleClearConversation = async () => {
+    const ok = window.confirm("Delete all messages in this conversation? This cannot be undone.");
+    if (!ok) return;
+    await clearConversationMessages();
   };
 
   // Close delete modal when clicking outside
@@ -159,6 +167,18 @@ const MessageContainer = ({ sidebarOpen, setSidebarOpen }) => {
                 )}
               </div>
             )}
+
+            {/* Clear Conversation Button */}
+            <div className="flex items-center border-l border-white/10 pl-3 sm:pl-4 shrink-0">
+              <button
+                onClick={handleClearConversation}
+                disabled={clearingConversation}
+                className={`transition-all duration-200 ${clearingConversation ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
+                title="Delete all chat messages"
+              >
+                <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-red-300 hover:text-red-500" />
+              </button>
+            </div>
 
             {/* Video/Audio Call Buttons */}
             {!selectedConversation?.isAI && (
