@@ -246,10 +246,29 @@ const toMessagePreview = (messageText) => {
   return compact.length > 120 ? `${compact.slice(0, 117)}...` : compact;
 };
 
-const getFrontendBaseUrl = () =>
-  String(process.env.FRONTEND_URL || process.env.CLIENT_URL || "")
+const isLocalhostUrl = (value) => /localhost|127\.0\.0\.1/i.test(String(value || ""));
+
+const getFrontendBaseUrl = () => {
+  const value = String(
+    process.env.PUSH_NOTIFICATION_CLICK_URL || process.env.FRONTEND_URL || ""
+  )
     .trim()
     .replace(/\/$/, "");
+
+  if (!value) {
+    return "";
+  }
+
+  // In production, never bake localhost URLs into push notifications.
+  if (process.env.NODE_ENV === "production" && isLocalhostUrl(value)) {
+    console.warn(
+      "Push click base URL is localhost in production. Falling back to relative route."
+    );
+    return "";
+  }
+
+  return value;
+};
 
 const toNotificationUrl = (route = "/") => {
   const rawRoute = String(route || "/").trim();
