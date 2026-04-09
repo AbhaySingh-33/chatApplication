@@ -47,9 +47,12 @@ self.addEventListener("notificationclick", (event) => {
   }
 
   const route = event.notification?.data?.route || "/";
+  const looksLikeDomain = /^[a-z0-9.-]+\.[a-z]{2,}(?:\/.*)?$/i.test(String(route || "").trim());
   const absoluteUrl = /^https?:\/\//i.test(route)
     ? route
-    : new URL(route, self.location.origin).href;
+    : looksLikeDomain
+      ? `https://${String(route).replace(/^\/+/, "")}`
+      : new URL(route, self.location.origin).href;
 
   event.waitUntil(clients.openWindow(absoluteUrl));
 });

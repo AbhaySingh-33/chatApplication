@@ -247,6 +247,8 @@ const toMessagePreview = (messageText) => {
 };
 
 const isLocalhostUrl = (value) => /localhost|127\.0\.0\.1/i.test(String(value || ""));
+const hasHttpScheme = (value) => /^https?:\/\//i.test(String(value || ""));
+const looksLikeDomain = (value) => /^[a-z0-9.-]+\.[a-z]{2,}(?:\/.*)?$/i.test(String(value || "").trim());
 
 const getFrontendBaseUrl = () => {
   const value = String(
@@ -259,15 +261,21 @@ const getFrontendBaseUrl = () => {
     return "";
   }
 
+  const normalizedValue = hasHttpScheme(value)
+    ? value
+    : looksLikeDomain(value)
+      ? `https://${value}`
+      : value;
+
   // In production, never bake localhost URLs into push notifications.
-  if (process.env.NODE_ENV === "production" && isLocalhostUrl(value)) {
+  if (process.env.NODE_ENV === "production" && isLocalhostUrl(normalizedValue)) {
     console.warn(
       "Push click base URL is localhost in production. Falling back to relative route."
     );
     return "";
   }
 
-  return value;
+  return normalizedValue.replace(/\/$/, "");
 };
 
 const toNotificationUrl = (route = "/") => {
@@ -278,6 +286,10 @@ const toNotificationUrl = (route = "/") => {
 
   if (/^https?:\/\//i.test(rawRoute)) {
     return rawRoute;
+  }
+
+  if (looksLikeDomain(rawRoute)) {
+    return `https://${rawRoute.replace(/^\/+/, "")}`;
   }
 
   const normalizedRoute = rawRoute.startsWith("/") ? rawRoute : `/${rawRoute}`;
