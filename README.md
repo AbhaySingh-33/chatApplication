@@ -1,327 +1,139 @@
 # ChatApp
 
-ChatApp is a full-stack real-time communication platform with:
+Real-time messaging, voice calls, and AI-powered assistance wrapped in a modern full-stack experience.
 
-- 1:1 messaging
-- Group chat with moderation controls
-- AI chat + RAG ingestion/retrieval
-- Voice session graph workflows
-- Friend request system
-- Real-time presence and events via Socket.IO
-- Offline web push notifications for chat messages (Appwrite + Firebase FCM)
+## Contents
+- Overview
+- Highlights
+- Architecture
+- Tech Stack
+- Repository Layout
+- Prerequisites
+- Quickstart
+- Environment Variables
+- Common Scripts
+- Deployment
+- Additional Documentation
 
-This README is updated to match the current repository contents.
+## Overview
+ChatApp combines real-time chat, group collaboration, AI-assisted conversations, and voice session workflows. It is designed to be production-ready with auth, moderation, and push notifications out of the box.
+
+## Highlights
+- Direct and group messaging with reactions, conflict resolution, and moderation controls
+- Presence, typing, and read-state updates through Socket.IO with Redis adapter
+- AI chat, insights, and retrieval-augmented generation backed by Mistral, LangChain/LangGraph, and Pinecone
+- Voice session graph workflows with WebRTC (SimplePeer)
+- Friend requests, user profiles, and email flows (Appwrite)
+- Offline push notifications via Firebase FCM + Appwrite
+
+## Architecture
+- **Backend**: Node.js + Express with MongoDB/Mongoose, Redis-backed Socket.IO, JWT cookie auth, Cloudinary uploads, Appwrite email/push workflows, and LangChain/LangGraph for RAG.
+- **Frontend**: React 19 + Vite with React Router, Zustand state, Tailwind CSS + DaisyUI, Socket.IO client, SimplePeer/WebRTC voice, and Firebase for push delivery.
+- **Shared runtime**: Backend serves the Vite build from `frontend/dist` when present. Docker Compose is provided for Redis, and CI/CD targets Railway for backend deployment.
+
+## Tech Stack
+- **Backend**: Node 20, Express, Mongoose, Redis, Cloudinary, Appwrite SDK, LangChain/LangGraph, Mistral, Pinecone.
+- **Frontend**: React 19, Vite, Tailwind CSS + DaisyUI, Zustand, React Router, Socket.IO client, SimplePeer, Firebase.
+- **Tooling**: ESLint (frontend), Nodemon for local backend dev, GitHub Actions workflow for Railway deploys.
 
 ## Repository Layout
+- `.github/workflows/backend-railway-cicd.yml` — CI/CD pipeline for backend
+- `backend/` — Express API, Socket.IO, RAG pipeline, Dockerfile
+- `docs/` — Deployment notes and push-notification guide
+- `frontend/` — React app, Vite config, Tailwind styles
+- `docker-compose.yml` — Redis and service wiring for local dev
+- `package-lock.json` — Root lockfile (backend + frontend)
 
-Top-level folders/files:
+## Prerequisites
+- Node.js 20+ and npm
+- MongoDB instance
+- Redis (Docker Compose provided)
+- Cloudinary account for media uploads
+- Appwrite project for email/push workflows
+- Firebase project + FCM keys for web push
 
-- `.github/workflows/backend-railway-cicd.yml`
-- `backend/`
-- `docs/deployment/backend-cicd.md`
-- `frontend/`
-- `docker-compose.yml`
-- `README.md`
-- `package-lock.json`
-
-## Backend Overview
-
-Backend stack:
-
-- Node.js + Express
-- MongoDB + Mongoose
-- Socket.IO + Redis adapter
-- JWT auth via cookies
-- Cloudinary uploads
-- Appwrite email workflows
-- Mistral + LangChain/LangGraph + Pinecone for RAG
-
-Backend scripts from `backend/package.json`:
-
-- `npm run dev` -> start with nodemon
-- `npm start` -> start production server
-- `npm run build` -> install deps and build frontend from backend context
-
-Backend API route mounts from `backend/server.js`:
-
-- `/api/auth`
-- `/api/reset`
-- `/api/messages`
-- `/api/users`
-- `/api/friends`
-- `/api/ai-chat`
-- `/api/groups`
-- `/api/voice-graph`
-
-Backend service behavior:
-
-- Connects to MongoDB on startup
-- Initializes Redis and Socket.IO Redis adapter when available
-- Serves frontend build from `frontend/dist` if present
-- Uses CORS with `FRONTEND_URL` and configured production origins
-- Applies `express-mongo-sanitize` and cookie parsing middleware
-
-## Frontend Overview
-
-Frontend stack:
-
-- React 19 + Vite
-- React Router
-- Zustand for state
-- Socket.IO client
-- SimplePeer (WebRTC)
-- Tailwind CSS + DaisyUI
-
-Frontend scripts from `frontend/package.json`:
-
-- `npm run dev`
-- `npm run build`
-- `npm run lint`
-- `npm run preview`
-
-Frontend includes:
-
-- Auth pages (login/signup/verify/reset)
-- 1:1 chat UI + emoji + reactions + conflict panel + AI insights panel
-- Group chat UI + settings/admin moderation controls
-- Voice call page/components
-- Shared contexts for auth, call, socket state
-- Browser push notifications for offline message alerts
-
-Detailed setup and implementation notes for push notifications:
-
-- `docs/push-notifications/README.md`
+## Quickstart
+1. Install backend dependencies:
+   ```bash
+   cd backend
+   npm install
+   ```
+2. Install frontend dependencies:
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+3. Start Redis (from the repo root):
+   ```bash
+   docker-compose up -d
+   ```
+4. Create `.env` files for `backend/` and `frontend/` using the variables below.
+5. Run the backend:
+   ```bash
+   cd backend
+   npm run dev
+   ```
+6. Run the frontend:
+   ```bash
+   cd ../frontend
+   npm run dev
+   ```
 
 ## Environment Variables
 
-Backend required at minimum:
+**Backend**
 
-- `MONGO_DB_URI` (or `MONGODB_URI`)
-- `JWT_SECRET`
+| Variable | Purpose |
+| --- | --- |
+| `MONGO_DB_URI` (or `MONGODB_URI`) | MongoDB connection string |
+| `JWT_SECRET` | JWT signing secret |
+| `PORT` | Backend port |
+| `FRONTEND_URL` | Allowed origin for CORS and cookies |
+| `REDIS_URL` | Redis connection string for Socket.IO adapter |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Media upload credentials |
+| `APPWRITE_ENDPOINT` / `APPWRITE_PROJECT_ID` / `APPWRITE_API_KEY` | Email + push workflows |
+| `APPWRITE_EMAIL_PROVIDER_ID` | Optional email provider identifier |
+| `APPWRITE_PUSH_PROVIDER_ID` | Push provider for FCM (e.g., `chattrix-fcm-prod`) |
+| `EMAIL_FROM_ADDRESS` | From address for transactional emails |
+| `MISTRAL_API_KEY` | API key for Mistral models |
+| `MISTRAL_MODEL` | Optional model override |
+| `PINECONE_API_KEY` / `PINECONE_INDEX` | Vector store credentials |
+| `PINECONE_NAMESPACE_PREFIX` | Optional namespace prefix for Pinecone |
 
-Common backend variables used in the codebase:
+**Frontend**
 
-- `PORT`
-- `FRONTEND_URL`
-- `REDIS_URL`
-- `CLOUDINARY_CLOUD_NAME`
-- `CLOUDINARY_API_KEY`
-- `CLOUDINARY_API_SECRET`
-- `APPWRITE_ENDPOINT`
-- `APPWRITE_PROJECT_ID`
-- `APPWRITE_API_KEY`
-- `APPWRITE_EMAIL_PROVIDER_ID` (optional)
-- `APPWRITE_PUSH_PROVIDER_ID` (required for push notifications, example: `chattrix-fcm-prod`)
-- `EMAIL_FROM_ADDRESS`
-- `MISTRAL_API_KEY`
-- `MISTRAL_MODEL` (optional)
-- `PINECONE_API_KEY`
-- `PINECONE_INDEX`
-- `PINECONE_NAMESPACE_PREFIX` (optional)
+| Variable | Purpose |
+| --- | --- |
+| `VITE_BACKEND_URL` (or `VITE_API_URL`) | Backend base URL |
+| `VITE_FIREBASE_API_KEY` | Firebase API key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase sender ID |
+| `VITE_FIREBASE_APP_ID` | Firebase app ID |
+| `VITE_FIREBASE_VAPID_KEY` | Public VAPID key for web push |
 
-Frontend variables:
+## Common Scripts
 
-- `VITE_BACKEND_URL` (or `VITE_API_URL` if used in your local setup)
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
-- `VITE_FIREBASE_VAPID_KEY`
+**Backend**
+- `npm run dev` — start the API with Nodemon
+- `npm start` — start the API in production mode
+- `npm run build` — install backend + frontend deps and build the frontend bundle
 
-## Local Development
+**Frontend**
+- `npm run dev` — start Vite dev server
+- `npm run build` — production build
+- `npm run lint` — run ESLint
+- `npm run preview` — preview the production build
 
-1. Install backend dependencies:
+## Deployment
+- CI/CD: `.github/workflows/backend-railway-cicd.yml`
+- Backend Dockerfile: `backend/Dockerfile`
+- Docker Compose for local services: `docker-compose.yml`
+- Deployment notes: `docs/deployment/backend-cicd.md`
+- Frontend config for Vercel: `frontend/vercel.json`
 
-```bash
-cd backend
-npm install
-```
-
-2. Install frontend dependencies:
-
-```bash
-cd ../frontend
-npm install
-```
-
-3. Start Redis (Docker):
-
-```bash
-cd ..
-docker-compose up -d
-```
-
-4. Run backend:
-
-```bash
-cd backend
-npm run dev
-```
-
-5. Run frontend:
-
-```bash
-cd frontend
-npm run dev
-```
-
-## Complete Tracked File Map
-
-The following is the current tracked file inventory from this repository:
-
-```text
-.github/workflows/backend-railway-cicd.yml
-.gitignore
-README.md
-backend/.dockerignore
-backend/.gitignore
-backend/Dockerfile
-backend/controllers/aiChat.controller.js
-backend/controllers/auth.controllers.js
-backend/controllers/group.controller.js
-backend/controllers/message.controller.js
-backend/controllers/rag.controller.js
-backend/controllers/resetPassword.controllers.js
-backend/controllers/user.controller.js
-backend/controllers/voiceGraph.controller.js
-backend/db/connectToMongoDB.js
-backend/middleware/protectRoute.js
-backend/models/conversation.model.js
-backend/models/group.model.js
-backend/models/groupMessage.model.js
-backend/models/message.model.js
-backend/models/user.model.js
-backend/models/voiceSession.model.js
-backend/package-lock.json
-backend/package.json
-backend/rag/agents/query_decomposer.js
-backend/rag/config.js
-backend/rag/ingestion/build_vector_db.js
-backend/rag/ingestion/chunker.js
-backend/rag/ingestion/classifier.js
-backend/rag/ingestion/crawler.js
-backend/rag/llm.js
-backend/rag/pinecone.js
-backend/rag/ragGraph.js
-backend/rag/retrieval/advanced_retriever.js
-backend/rag/retrieval/multi_query.js
-backend/rag/retrieval/retriever.js
-backend/rag/routing/router.js
-backend/routes/aiChat.routes.js
-backend/routes/auth.routes.js
-backend/routes/group.routes.js
-backend/routes/message.routes.js
-backend/routes/user.routes.js
-backend/routes/voiceGraph.routes.js
-backend/scripts/checkAppwriteEmailLogs.mjs
-backend/server.js
-backend/socket/socket.js
-backend/utils/aiInsights.js
-backend/utils/conflictResolver.js
-backend/utils/email/errors.js
-backend/utils/email/index.js
-backend/utils/email/templates.js
-backend/utils/email/transporter.js
-backend/utils/generateToken.js
-backend/utils/groupModerator.js
-backend/utils/mistralClient.js
-backend/utils/redis.js
-backend/utils/sendEmail.js
-docker-compose.yml
-docs/deployment/backend-cicd.md
-frontend/.gitignore
-frontend/eslint.config.js
-frontend/index.html
-frontend/package-lock.json
-frontend/package.json
-frontend/public/default-girl.jpg
-frontend/public/default-man.jpg
-frontend/public/default.png
-frontend/public/logo.png
-frontend/src/App.css
-frontend/src/App.jsx
-frontend/src/assets/sounds/notification.mp3
-frontend/src/components/EmojiPickerButton.jsx
-frontend/src/components/groups/GroupListItem.jsx
-frontend/src/components/groups/GroupMessage.jsx
-frontend/src/components/groups/GroupMessageContainer.jsx
-frontend/src/components/groups/GroupMessageInput.jsx
-frontend/src/components/groups/GroupMessages.jsx
-frontend/src/components/groups/GroupSettingsPanel.jsx
-frontend/src/components/groups/GroupSidebar.jsx
-frontend/src/components/messages/AIInsightsPanel.jsx
-frontend/src/components/messages/ConflictResolverPanel.jsx
-frontend/src/components/messages/Message.jsx
-frontend/src/components/messages/MessageContainer.jsx
-frontend/src/components/messages/MessageInput.jsx
-frontend/src/components/messages/Messages.jsx
-frontend/src/components/sidebar/AIAssistant.jsx
-frontend/src/components/sidebar/Conversation.jsx
-frontend/src/components/sidebar/Conversations.jsx
-frontend/src/components/sidebar/GlobalCallUI.jsx
-frontend/src/components/sidebar/LogoutButton.jsx
-frontend/src/components/sidebar/Notifications.jsx
-frontend/src/components/sidebar/SearchInput.jsx
-frontend/src/components/sidebar/Sidebar.jsx
-frontend/src/components/skeletons/MessageSkeleton.jsx
-frontend/src/context/AuthContext.jsx
-frontend/src/context/CallContext.jsx
-frontend/src/context/SocketContext.jsx
-frontend/src/hooks/useAIChat.js
-frontend/src/hooks/useAIInsights.js
-frontend/src/hooks/useConflictMode.js
-frontend/src/hooks/useCreateGroup.js
-frontend/src/hooks/useFriendsList.js
-frontend/src/hooks/useGetConversations.js
-frontend/src/hooks/useGetGroupMessages.js
-frontend/src/hooks/useGetGroups.js
-frontend/src/hooks/useGetMe.js
-frontend/src/hooks/useGetMessages.js
-frontend/src/hooks/useGroupDetails.js
-frontend/src/hooks/useListenFriendUpdates.js
-frontend/src/hooks/useListenGroupEvents.js
-frontend/src/hooks/useListenMessages.js
-frontend/src/hooks/useLogin.js
-frontend/src/hooks/useLogout.js
-frontend/src/hooks/useReactToMessage.js
-frontend/src/hooks/useSendGroupMessage.js
-frontend/src/hooks/useSendMessage.js
-frontend/src/hooks/useSignup.js
-frontend/src/hooks/useVoiceGraph.js
-frontend/src/index.css
-frontend/src/main.jsx
-frontend/src/pages/changePassword/ForgotPassword.jsx
-frontend/src/pages/changePassword/ResetPassword.jsx
-frontend/src/pages/groups/Groups.jsx
-frontend/src/pages/home/Home.jsx
-frontend/src/pages/home/Profile.jsx
-frontend/src/pages/login/Login.jsx
-frontend/src/pages/signup/GenderCheckbox.jsx
-frontend/src/pages/signup/SignUp.jsx
-frontend/src/pages/verifyEmail/Verification.jsx
-frontend/src/pages/verifyEmail/VerifyEmail.jsx
-frontend/src/pages/voice/VoiceCall.jsx
-frontend/src/utils/emojis.js
-frontend/src/utils/extractTime.js
-frontend/src/utils/upload.js
-frontend/src/zustand/useConversation.js
-frontend/src/zustand/useGroupChat.js
-frontend/vercel.json
-frontend/vite.config.js
-package-lock.json
-```
-
-## Deployment Artifacts Present
-
-- Docker compose for Redis + backend service wiring
-- Backend Dockerfile (Node 20 Alpine, non-root user)
-- GitHub Actions workflow for backend Railway CI/CD
-- Deployment documentation in `docs/deployment/backend-cicd.md`
-- Frontend Vercel config in `frontend/vercel.json`
-
-## Notes
-
-- This document intentionally reflects current repository state rather than planned roadmap items.
-- To keep this section accurate over time, regenerate the tracked file list after adding/removing files.
+## Additional Documentation
+- Push notifications: `docs/push-notifications/README.md`
+- RAG components: see `backend/rag/` (agents, retrievers, routing)
+- Socket.IO and Redis integration: `backend/socket/socket.js`
