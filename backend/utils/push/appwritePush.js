@@ -246,6 +246,30 @@ const toMessagePreview = (messageText) => {
   return compact.length > 120 ? `${compact.slice(0, 117)}...` : compact;
 };
 
+const getFrontendBaseUrl = () =>
+  String(process.env.FRONTEND_URL || process.env.CLIENT_URL || "")
+    .trim()
+    .replace(/\/$/, "");
+
+const toNotificationUrl = (route = "/") => {
+  const rawRoute = String(route || "/").trim();
+  if (!rawRoute) {
+    return "/";
+  }
+
+  if (/^https?:\/\//i.test(rawRoute)) {
+    return rawRoute;
+  }
+
+  const normalizedRoute = rawRoute.startsWith("/") ? rawRoute : `/${rawRoute}`;
+  const baseUrl = getFrontendBaseUrl();
+  if (!baseUrl) {
+    return normalizedRoute;
+  }
+
+  return `${baseUrl}${normalizedRoute}`;
+};
+
 export const sendOfflineMessagePush = async ({ receiver, sender, messageText, chatRoute }) => {
   if (!receiver?._id) {
     return;
@@ -275,7 +299,8 @@ export const sendOfflineMessagePush = async ({ receiver, sender, messageText, ch
   const senderName = String(sender?.fullName || sender?.username || "Someone");
   const preview = toMessagePreview(messageText);
 
-  const frontendUrl = String(process.env.FRONTEND_URL || "").trim().replace(/\/$/, "");
+  const frontendUrl = getFrontendBaseUrl();
+  const notificationUrl = toNotificationUrl(chatRoute || "/");
 
   await messaging.createPush({
     messageId: ID.unique(),
@@ -286,10 +311,10 @@ export const sendOfflineMessagePush = async ({ receiver, sender, messageText, ch
       type: "chat_message",
       senderId: String(sender?._id || ""),
       senderName,
-      route: chatRoute || "/",
+      route: notificationUrl,
       preview,
     },
-    action: chatRoute || "/",
+    action: notificationUrl,
     ...(frontendUrl ? { icon: `${frontendUrl}/logo.png` } : {}),
     tag: `chat-${String(sender?._id || "unknown")}`,
     draft: false,
@@ -315,6 +340,8 @@ export const sendTestPushToUser = async ({ mongoUserId, title, body, route = "/"
     return { delivered: false, reason: "no-targets" };
   }
 
+  const notificationUrl = toNotificationUrl(route);
+
   const message = await messaging.createPush({
     messageId: ID.unique(),
     title: title || "Chattrix Test",
@@ -322,9 +349,9 @@ export const sendTestPushToUser = async ({ mongoUserId, title, body, route = "/"
     targets: pushTargets.map((target) => target.$id),
     data: {
       type: "push_test",
-      route,
+      route: notificationUrl,
     },
-    action: route,
+    action: notificationUrl,
     tag: "chattrix-push-test",
     draft: false,
     priority: "high",

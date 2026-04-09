@@ -47,5 +47,9 @@ self.addEventListener("notificationclick", (event) => {
   }
 
   const route = event.notification?.data?.route || "/";
-  event.waitUntil(clients.openWindow(route));
+  const absoluteUrl = /^https?:\/\//i.test(route)
+    ? route
+    : new URL(route, self.location.origin).href;
+
+  event.waitUntil(clients.openWindow(absoluteUrl));
 });
