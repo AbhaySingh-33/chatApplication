@@ -7,6 +7,7 @@ import {
     analyzeConflictForDraft,
     resolveConflictIfNeeded,
 } from "../utils/conflictResolver.js";
+import { isAppwritePushConfigured, sendOfflineMessagePush } from "../utils/push/appwritePush.js";
 
 const DEFAULT_CONFLICT_MODE = "suggest";
 const ALLOWED_CONFLICT_MODES = new Set(["off", "suggest", "modify", "block"]);
@@ -96,6 +97,30 @@ export const sendMessage = async (req, res) => {
         }
 
         res.status(201).json(newMessage);
+
+        if (!receiverSocketId && isAppwritePushConfigured()) {
+            setImmediate(async () => {
+                try {
+                    const receiverUser = await User.findById(receiverId).select("_id");
+                    if (!receiverUser) {
+                        return;
+                    }
+
+                    await sendOfflineMessagePush({
+                        receiver: receiverUser,
+                        sender: {
+                            _id: filteredUser?._id,
+                            fullName: filteredUser?.fullName,
+                            username: filteredUser?.username,
+                        },
+                        messageText: textToSend || (media ? "sent you a photo/video" : "sent you a new message"),
+                        chatRoute: "/",
+                    });
+                } catch (pushError) {
+                    console.error("Offline push send failed:", pushError.message);
+                }
+            });
+        }
 
         if (conflictMode !== "off") {
             setImmediate(async () => {

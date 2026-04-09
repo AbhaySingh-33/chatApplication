@@ -3,6 +3,12 @@ import mongoSanitize from "express-mongo-sanitize";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import Message from "../models/message.model.js";
 import bcrypt from "bcryptjs";
+import {
+	isAppwritePushConfigured,
+	registerPushTarget,
+	sendTestPushToUser,
+	getPushStatusForUser,
+} from "../utils/push/appwritePush.js";
 
 const getDefaultProfilePic = (gender) => {
 	const maleDefault = process.env.DEFAULT_MAN_PROFILE_PIC
@@ -283,4 +289,96 @@ export const updateProfile = async (req, res) => {
 		}
         res.status(500).json({ error: "Failed to update profile" });
       }
+};
+
+export const registerPushNotificationToken = async (req, res) => {
+	try {
+		const userId = req.user._id;
+		const sanitizedBody = mongoSanitize.sanitize(req.body);
+		const { token, deviceName, previousUserId } = sanitizedBody;
+
+		if (!token || typeof token !== "string") {
+			return res.status(400).json({ error: "Push token is required" });
+		}
+
+		if (!isAppwritePushConfigured()) {
+			return res.status(503).json({
+				error: "Push notifications are not configured on server",
+			});
+		}
+
+		const user = await User.findById(userId).select("_id email fullName username");
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		const detachCandidates = await User.find({ _id: { $ne: userId } }).select("_id").lean();
+		const detachCandidateMongoUserIds = detachCandidates.map((entry) => entry._id.toString());
+
+		const targetId = await registerPushTarget({
+			mongoUser: user,
+			pushToken: token,
+			deviceName: deviceName || "Chattrix Web Device",
+			previousMongoUserId: previousUserId || null,
+			detachCandidateMongoUserIds,
+		});
+
+		console.log(`Push token registration success for user ${String(userId)}: ${targetId}`);
+
+		res.status(200).json({
+			success: true,
+			targetId,
+		});
+	} catch (error) {
+		console.error("Push token registration error:", error.message);
+		res.status(500).json({ error: "Failed to register push token" });
+	}
+};
+
+export const sendPushTestNotification = async (req, res) => {
+	try {
+		const userId = req.user._id;
+
+		if (!isAppwritePushConfigured()) {
+			return res.status(503).json({ error: "Push notifications are not configured on server" });
+		}
+
+		const result = await sendTestPushToUser({
+			mongoUserId: userId,
+			title: "Chattrix Test",
+			body: "If you received this, push notifications are working.",
+			route: "/",
+		});
+
+		if (!result.delivered) {
+			return res.status(404).json({
+				error: "No push target found for this user. Login again and allow notifications.",
+				reason: result.reason,
+			});
+		}
+
+		res.status(200).json({ success: true, ...result });
+	} catch (error) {
+		console.error("Push test send error:", error.message);
+		res.status(500).json({ error: "Failed to send test push notification" });
+	}
+};
+
+export const getPushNotificationStatus = async (req, res) => {
+	try {
+		const userId = req.user._id;
+
+		if (!isAppwritePushConfigured()) {
+			return res.status(503).json({
+				configured: false,
+				error: "Push notifications are not configured on server",
+			});
+		}
+
+		const status = await getPushStatusForUser({ mongoUserId: userId });
+		return res.status(200).json({ configured: true, ...status });
+	} catch (error) {
+		console.error("Push status check error:", error.message);
+		return res.status(500).json({ error: "Failed to get push status" });
+	}
 };

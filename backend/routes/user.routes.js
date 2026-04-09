@@ -8,7 +8,10 @@ import {
     sendFriendRequest,
     acceptFriendRequest,
     rejectFriendRequest,
-    getFriendRequests
+    getFriendRequests,
+    registerPushNotificationToken,
+    sendPushTestNotification,
+    getPushNotificationStatus
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -22,6 +25,10 @@ router.get("/notifications", protectRoute, getFriendRequests);
 router.get("/list", protectRoute, getFriends);
 router.delete("/:friendId", protectRoute, removeFriend );
 router.put("/update-profile", protectRoute, updateProfile );
+router.post("/push/register", protectRoute, registerPushNotificationToken);
+router.post("/push/test", protectRoute, sendPushTestNotification);
+router.get("/push/test", protectRoute, sendPushTestNotification);
+router.get("/push/status", protectRoute, getPushNotificationStatus);
 
 
 export default router;

@@ -6,7 +6,6 @@ import SignUp from "./pages/signup/SignUp";
 import { Toaster } from "react-hot-toast";
 import { useAuthContext } from "./context/AuthContext";
 import VerifyEmail from "./pages/verifyEmail/VerifyEmail";
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Verification from "./pages/verifyEmail/Verification";
 import Profile from "./pages/home/Profile";
@@ -16,10 +15,12 @@ import Groups from "./pages/groups/Groups";
 import VoiceCall from "./pages/voice/VoiceCall";
 import { CallContextProvider } from "./context/CallContext";
 import GlobalCallUI from "./components/sidebar/GlobalCallUI";
+import usePushNotifications from "./hooks/usePushNotifications";
 
 function App() {
   const { authUser } = useAuthContext();
   const navigate = useNavigate();
+  usePushNotifications();
 
   return (
     <CallContextProvider>

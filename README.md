@@ -8,6 +8,7 @@ ChatApp is a full-stack real-time communication platform with:
 - Voice session graph workflows
 - Friend request system
 - Real-time presence and events via Socket.IO
+- Offline web push notifications for chat messages (Appwrite + Firebase FCM)
 
 This README is updated to match the current repository contents.
 
@@ -85,6 +86,11 @@ Frontend includes:
 - Group chat UI + settings/admin moderation controls
 - Voice call page/components
 - Shared contexts for auth, call, socket state
+- Browser push notifications for offline message alerts
+
+Detailed setup and implementation notes for push notifications:
+
+- `docs/push-notifications/README.md`
 
 ## Environment Variables
 
@@ -105,6 +111,7 @@ Common backend variables used in the codebase:
 - `APPWRITE_PROJECT_ID`
 - `APPWRITE_API_KEY`
 - `APPWRITE_EMAIL_PROVIDER_ID` (optional)
+- `APPWRITE_PUSH_PROVIDER_ID` (required for push notifications, example: `chattrix-fcm-prod`)
 - `EMAIL_FROM_ADDRESS`
 - `MISTRAL_API_KEY`
 - `MISTRAL_MODEL` (optional)
@@ -112,9 +119,16 @@ Common backend variables used in the codebase:
 - `PINECONE_INDEX`
 - `PINECONE_NAMESPACE_PREFIX` (optional)
 
-Frontend variable:
+Frontend variables:
 
-- `VITE_API_URL`
+- `VITE_BACKEND_URL` (or `VITE_API_URL` if used in your local setup)
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+- `VITE_FIREBASE_VAPID_KEY`
 
 ## Local Development
 
