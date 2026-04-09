@@ -5,6 +5,44 @@ import { useAuthContext } from "../context/AuthContext";
 import { canUseFirebaseMessaging, firebaseConfig, getFirebaseMessaging, listenForegroundMessages } from "../services/firebaseMessaging";
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+const DEFAULT_CLICK_BASE_URL = "https://chat-application-bice-ten.vercel.app";
+
+const hasHttpScheme = (value) => /^https?:\/\//i.test(String(value || ""));
+const isLocalhostUrl = (value) => /localhost|127\.0\.0\.1/i.test(String(value || ""));
+const looksLikeDomain = (value) => /^[a-z0-9.-]+\.[a-z]{2,}(?:\/.*)?$/i.test(String(value || "").trim());
+
+const getClickBaseUrl = () => {
+  const fromEnv = String(import.meta.env.VITE_PUSH_CLICK_BASE_URL || "").trim();
+  const fallback = DEFAULT_CLICK_BASE_URL;
+
+  const raw = fromEnv || fallback;
+  const withScheme = hasHttpScheme(raw) ? raw : `https://${raw.replace(/^\/+/, "")}`;
+  return withScheme.replace(/\/$/, "");
+};
+
+const resolveNotificationRoute = (route) => {
+  const raw = String(route || "/").trim();
+  const baseUrl = getClickBaseUrl();
+
+  if (!raw) {
+    return `${baseUrl}/`;
+  }
+
+  if (hasHttpScheme(raw)) {
+    if (isLocalhostUrl(raw)) {
+      const pathname = new URL(raw).pathname || "/";
+      return `${baseUrl}${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
+    }
+    return raw;
+  }
+
+  if (looksLikeDomain(raw)) {
+    return `https://${raw.replace(/^\/+/, "")}`;
+  }
+
+  const normalizedPath = raw.startsWith("/") ? raw : `/${raw}`;
+  return `${baseUrl}${normalizedPath}`;
+};
 
 const toPreviewText = (payload) => {
   const body = payload?.notification?.body || payload?.data?.preview || "You have a new message on Chattrix.";
@@ -145,7 +183,7 @@ const usePushNotifications = () => {
         if (Notification.permission === "granted") {
           const title = payload?.notification?.title || "Chattrix";
           const body = toPreviewText(payload);
-          const route = payload?.data?.route || "/";
+          const route = resolveNotificationRoute(payload?.data?.route || "/");
           const notification = new Notification(title, {
             body,
             icon: "/logo.png",
