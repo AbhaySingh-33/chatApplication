@@ -7,21 +7,20 @@ import { NoiseSuppressionProcessor } from "@shiguredo/noise-suppression";
 
 const CallContext = createContext();
 
+const STUN_URL = import.meta.env.VITE_STUN_URL;
+const TURN_USERNAME = import.meta.env.VITE_TURN_USERNAME;
+const TURN_CREDENTIAL = import.meta.env.VITE_TURN_CREDENTIAL;
+const TURN_URLS = (import.meta.env.VITE_TURN_URLS || "")
+    .split(",")
+    .map((url) => url.trim())
+    .filter(Boolean);
+
 const PEER_CONFIG = {
     iceServers: [
-        { urls: ["stun:bn-turn2.xirsys.com"] },
-        {
-            username: "Z2pl8YreKImIPLzdxO-sxtgO1msUbImFvRAehu25ArXj7ogBIyqYqonVOUWtk7hRAAAAAGhpIT5BYmhheQ==",
-            credential: "9e93ad80-599f-11f0-bdaa-0242ac140004",
-            urls: [
-                "turn:bn-turn2.xirsys.com:80?transport=udp",
-                "turn:bn-turn2.xirsys.com:3478?transport=udp",
-                "turn:bn-turn2.xirsys.com:80?transport=tcp",
-                "turn:bn-turn2.xirsys.com:3478?transport=tcp",
-                "turns:bn-turn2.xirsys.com:443?transport=tcp",
-                "turns:bn-turn2.xirsys.com:5349?transport=tcp",
-            ],
-        },
+        ...(STUN_URL ? [{ urls: [STUN_URL] }] : []),
+        ...(TURN_USERNAME && TURN_CREDENTIAL && TURN_URLS.length
+            ? [{ username: TURN_USERNAME, credential: TURN_CREDENTIAL, urls: TURN_URLS }]
+            : []),
     ],
 };
 
