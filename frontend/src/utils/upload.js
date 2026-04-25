@@ -5,7 +5,6 @@ export const uploadToCloudinary = async (file) => {
       "upload_preset",
       import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
     ); 
-    formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY); 
   
     // Determine folder & resource type
     const fileType = file.type.startsWith("image") ? "image" : "video";

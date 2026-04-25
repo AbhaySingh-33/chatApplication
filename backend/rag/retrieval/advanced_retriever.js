@@ -4,11 +4,21 @@ import { RAG_CONFIG } from "../config.js";
 
 const rrfScore = (rank, k = 60) => 1 / (k + rank);
 
-export const retrieveWithRRF = async ({ userId, query, perQueryK = 4 }) => {
+export const retrieveWithRRF = async ({
+  userId,
+  query,
+  perQueryK = 4,
+  metadataFilter = null,
+}) => {
   const variants = await generateQueryVariants(query);
   const rankings = await Promise.all(
     variants.map(async (variant) => {
-      const docs = await retrieveContext({ userId, query: variant, k: perQueryK });
+      const docs = await retrieveContext({
+        userId,
+        query: variant,
+        k: perQueryK,
+        metadataFilter,
+      });
       return docs;
     })
   );

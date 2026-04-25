@@ -7,9 +7,11 @@ import mongoSanitize from "express-mongo-sanitize";
 import { updateAIInsightsForConversation } from "../utils/aiInsights.js";
 import { chatWithMistral, hasMistralApiKey } from "../utils/mistralClient.js";
 import { answerWithRag } from "../rag/ragGraph.js";
+import { getQueryRoutePlan, isStrongDocQuery } from "../rag/routing/router.js";
 
 const MAX_CONTEXT_MESSAGES = 12;
 const MAX_MEMORY_ITEMS = 20;
+const AI_DEBUG = String(process.env.AI_DEBUG || "").toLowerCase() === "true";
 
 const safeJsonParse = (value) => {
   try {
@@ -63,6 +65,21 @@ const buildUserMemoryString = (user) => {
   if (topics.length) parts.push(`Recent topics: ${topics.join(", ")}`);
 
   return parts.join("\n");
+};
+
+const getLatestPdfSourceId = (user) => {
+  const sources = Array.isArray(user?.ragContext?.sources)
+    ? user.ragContext.sources
+    : [];
+
+  const latestPdf = [...sources]
+    .filter((item) => item?.type === "pdf" && item?.sourceId)
+    .sort(
+      (a, b) =>
+        new Date(b?.ingestedAt || 0).getTime() - new Date(a?.ingestedAt || 0).getTime()
+    )[0];
+
+  return latestPdf?.sourceId ? String(latestPdf.sourceId) : "";
 };
 
 const updateUserAIMemory = async ({ user, userMessage, aiResponseText }) => {
@@ -124,6 +141,26 @@ const updateUserAIMemory = async ({ user, userMessage, aiResponseText }) => {
   }
 };
 
+const getDirectAIResponse = async ({ userMemory, conversationContext, userMessage }) => {
+  const responseText = await chatWithMistral({
+    prompt: [
+      userMemory ? `User memory:\n${userMemory}` : "",
+      conversationContext ? `Recent conversation:\n${conversationContext}` : "",
+      `Current user message: ${userMessage}`,
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
+    systemPrompt: [
+      "You are a concise and helpful AI assistant in a real-time chat app.",
+      "Use recent conversation for continuity.",
+      "Personalize replies using user memory when relevant.",
+    ].join(" "),
+    temperature: 0.7,
+  });
+
+  return responseText || "I'm not sure how to respond to that.";
+};
+
 // Placeholder for AI response
 const getAIResponse = async ({ userId, user, userMessage, conversationContext }) => {
   try {
@@ -133,15 +170,74 @@ const getAIResponse = async ({ userId, user, userMessage, conversationContext })
 
     const userMemory = buildUserMemoryString(user);
     const canUseRag = Boolean(user?.ragContext?.hasIngestedDocs);
+    const strongDocRequest = isStrongDocQuery(userMessage);
+    const preferredSourceId = strongDocRequest ? getLatestPdfSourceId(user) : "";
+    const routePlan = await getQueryRoutePlan({
+      query: userMessage,
+      hasIngestedDocs: canUseRag,
+      hasVectorContext: canUseRag,
+    });
+    const shouldCallRag = Boolean(routePlan.shouldUseRagPipeline);
+
+    if (AI_DEBUG) {
+      console.log("[AI_ROUTER]", {
+        userId: String(userId),
+        canUseRag,
+        strongDocRequest,
+        route: routePlan.route,
+        routerReason: routePlan.reason,
+        routerConfidence: routePlan.confidence,
+        decidedBy: routePlan.decidedBy,
+        preferredSourceId,
+        shouldCallRag,
+        query: String(userMessage || "").slice(0, 160),
+      });
+    }
+
+    if (strongDocRequest && !canUseRag) {
+      return "I could not find any ingested document for your account yet. Please upload and ingest a PDF in AI Knowledge Base, then ask again.";
+    }
+
+    if (!shouldCallRag) {
+      return await getDirectAIResponse({
+        userMemory,
+        conversationContext,
+        userMessage,
+      });
+    }
+
+    const ragTimeoutMs = Math.max(
+      900,
+      Number(process.env.RAG_RESPONSE_TIMEOUT_MS || 2400)
+    );
+    const directPromise = strongDocRequest
+      ? null
+      : getDirectAIResponse({
+          userMemory,
+          conversationContext,
+          userMessage,
+        });
 
     try {
-      const ragResult = await answerWithRag({
+      const ragTask = answerWithRag({
         userId,
         question: userMessage,
         conversationContext,
         userMemory,
         allowVector: canUseRag,
+        routeHint: routePlan.route,
+        preferredSourceId,
       });
+
+      // For explicit document requests, wait for retrieval completion instead of timing out early.
+      const ragResult = strongDocRequest
+        ? await ragTask
+        : await Promise.race([
+            ragTask,
+            new Promise((resolve) => {
+              setTimeout(() => resolve({ mode: "timeout", answer: null, sources: [] }), ragTimeoutMs);
+            }),
+          ]);
 
       if (ragResult?.answer) {
         const sources = (ragResult.sources || []).slice(0, 3);
@@ -149,29 +245,36 @@ const getAIResponse = async ({ userId, user, userMessage, conversationContext })
           ? `\n\nSources: ${sources.join(" | ")}`
           : "";
 
+        if (AI_DEBUG) {
+          console.log("[AI_RAG_RESULT]", {
+            userId: String(userId),
+            mode: ragResult?.mode,
+            sourcesCount: (ragResult?.sources || []).length,
+          });
+        }
+
         return `${ragResult.answer}${sourceLine}`;
+      }
+
+      if (AI_DEBUG) {
+        console.log("[AI_RAG_EMPTY]", {
+          userId: String(userId),
+          mode: ragResult?.mode,
+        });
+      }
+
+      if (strongDocRequest) {
+        return "I checked your uploaded document context but could not find a matching passage for this question. Please rephrase with key terms that appear in the PDF.";
       }
     } catch (ragError) {
       console.error("RAG/web lookup skipped due to error:", ragError?.response?.data || ragError.message);
+
+      if (strongDocRequest) {
+        return "I could not complete document retrieval right now due to a temporary issue. Please try again in a moment.";
+      }
     }
 
-    const responseText = await chatWithMistral({
-      prompt: [
-        userMemory ? `User memory:\n${userMemory}` : "",
-        conversationContext ? `Recent conversation:\n${conversationContext}` : "",
-        `Current user message: ${userMessage}`,
-      ]
-        .filter(Boolean)
-        .join("\n\n"),
-      systemPrompt: [
-        "You are a concise and helpful AI assistant in a real-time chat app.",
-        "Use recent conversation for continuity.",
-        "Personalize replies using user memory when relevant.",
-      ].join(" "),
-      temperature: 0.7,
-    });
-
-    return responseText || "I'm not sure how to respond to that.";
+    return await directPromise;
 
   } catch (error) {
     console.error("AI Response Error:", error?.response?.data || error.message);
